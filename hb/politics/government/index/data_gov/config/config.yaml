@@ -1,0 +1,4 @@
+--- 
+namespace: gov.index
+protocol: data_gov
+filesystem_scheme: file

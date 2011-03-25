@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'rake' # I <3 rake
+require 'configliere'
+require 'json'
+
+Settings.use :config_file
+
+inputdir  = ARGV[0]
+outputdir = ARGV[1]
+
+#
+# Read in working config file
+#
+Settings.read(File.join(outputdir, "env", "working_environment.yaml"))
+Settings.resolve!
+
+# Path to rawd to process
+uncompressed_filename = File.basename(Settings['non_avro']['download_url']).gsub(File.extname(Settings['non_avro']['download_url']), '')
+uncompressed          = File.join(inputdir, "rawd", uncompressed_filename)
+
+# Path to final output
+outd       = File.join(outputdir, "data", "word_stats")
+code       = File.join(outputdir, "code")
+outfile    = File.join(outd, "word_stats.tsv")
+avroschema = File.join(outputdir, "bnc.icss.json")
+directory outd
+directory code
+
+#
+# Create clean output data file
+#
+file outfile => outd do
+  unless File.exist? outfile
+    puts "Processing #{uncompressed}..."
+    File.open(outfile, 'w') do |data|
+      head_word, part_of_speech = ["",""]
+      File.open(uncompressed).each do |line|
+        word, pos, variant, freq_ppm, range, dispersion = line.strip.split("\t")
+        head_word      = word unless word == "@"
+        part_of_speech = pos  unless pos  == "@"
+        word_stats = [freq_ppm, range, dispersion]
+        if (variant == ":" || variant == "%") # we're on the head word
+          data.puts [head_word, part_of_speech, word_stats, head_word, word_stats].flatten.join("\t")
+        else
+          data.puts [head_word, part_of_speech, word_stats, variant, word_stats].flatten.join("\t")
+        end
+      end
+    end
+  end
+end
+
+#
+# Create avro schema for the tsv data file
+#
+file avroschema => outd do
+  valid_keys = %w[namespace protocol data_assets code_assets types messages targets catalog]
+  schema     = Settings.to_hash.reject{|k,v| !valid_keys.include?(k)}.to_json
+  File.open(avroschema, 'wb'){|f| f.puts(schema)}
+end
+
+#
+# Place code asset where it goes in the output directory structure.
+# FIXME: It should only copy itself there if it has changed.
+#
+task :code_assets => code do
+  code_asset = File.join(File.dirname(__FILE__), 'bnc_endpoint.rb')
+  in_place   = File.join(code, File.basename(code_asset))
+  cp(code_asset, in_place)
+end
+
+task :run => [outfile, avroschema, :code_assets]
+
+Rake::Task[:run].invoke

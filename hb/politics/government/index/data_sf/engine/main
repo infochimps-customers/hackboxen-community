@@ -1,0 +1,115 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'nokogiri'
+require 'rake'
+require 'configliere'
+require 'json'
+
+inputdir  = ARGV[0]
+outputdir = ARGV[1]
+workdir   = File.join(inputdir, "rawd")
+
+Settings.use :config_file
+Settings.read("#{inputdir}/fixd/env/working_environment.yaml")
+Settings.resolve!
+
+@@categories = Hash.new {|hash, key| hash[key]="ERROR: #{key}"}
+@@categories.merge!({
+    "admin_finance"  => "economics_labor_and_employment",
+    "environment"    => "geography",
+    "geography"      => "geography",
+    "housing"        => "economics_housing",
+    "human_services" => "social_sciences_sociology",
+    "public_safety"  => "medicine_public_health",
+    "public_works"   => "engineering_civil_engineering",
+    "transportation" => "engineering_transportation"
+  })
+
+task :parse do
+
+  Dir[File.join(inputdir, "ripd", "*.html")].each do |page|
+    parsed_file = File.join(workdir, File.basename(page, ".html") + "_parsed")
+    unless File.exists? parsed_file
+      puts "Parsing " + File.basename(page)
+      File.open(parsed_file, 'w') do |file|
+        file.write(parse(page).to_json)
+      end
+    end
+  end
+
+end
+
+task :catalog => [:parse] do
+
+  output_file = File.join(outputdir, "catalog.txt")
+  unless File.exists? output_file
+  puts "Writing to " + File.basename(output_file)
+    File.open(output_file, 'w') do |catalog|
+      Dir[File.join(workdir, "*parsed")].each do |page|
+        puts "..." + File.basename(page)
+        catalog.puts File.read(page)
+      end
+    end
+  end
+
+end
+
+def parse page
+
+  doc = Nokogiri::HTML(File.new(page))
+  meta_data = {}
+
+  0.upto( doc.xpath("//div[@class='title']").size - 1) do |i|
+    title       = doc.xpath("//div[@id='title-#{i}']/h2/a").first.content
+    category    = doc.xpath("//div[@id='title-#{i}']/span/a").first['href'][/[^=]*\z/]
+    description = doc.xpath("//span[@id='ls_contents-#{i}']").first.content
+    tags        = doc.xpath("//div[@class='subtext']")[i].content.split(/\r\n\t+/).select { |a| a =~ /\w/ }.delete_if { |a| a =~ /Tags:/ }
+    fields = [
+      ["agency","name"],
+      ["time","period"],
+      ["frequency"],
+      ["format"],
+      ["details"],
+      ["data","dictionary"]
+    ]
+    fields_match = ['Agency Name', 'Time Period', 'Frequency', 'Format', 'Details', 'Data Dictionary']
+    fields_match.each do |header|
+      temp = description.scan(/#{header}:[^(\\r|\\t)]+/)
+      meta_data[header] = temp.first.gsub(/#{header}: /,'') unless temp.empty?
+      # header = f.map { |j| j.capitalize }.join(" ")
+      # eval "temp = description.scan(/#{header}:[^(\\r|\\t)]+/)
+      # meta_data['#{f.join(" ")}'] = temp.first.gsub(/#{header}: /,'') unless temp.empty? "
+    end
+    meta_data['description'] = description.gsub(/\t/,'')[/[^\r\n]+/]
+    #The link is either at the top, or in the description. I'll check the
+    #description first, as it appears the top is sometimes a worse link.
+    #Maybe they put in a proper link?
+    l = doc.xpath("//span[@id='ls_contents-#{i}']//a").first
+    if l
+      link = l['href']
+    else
+      #How about a plaintext link?
+      l = description[/Location of dataset: h\S+/]
+      if l
+        link = l[/h.*/]
+      else
+        #How about the top?
+        l = doc.xpath("//div[@id='title-#{i}']/span[@class='subtext']//a")[1]
+        if l
+          link =l['href']
+        else
+          link = nil
+        end
+      end
+    end
+    meta_data['title']    = title
+    meta_data['category'] = category
+    meta_data['link']     = link
+    meta_data['tags']     = tags
+  end
+  meta_data
+end
+
+Rake::Task[:catalog].invoke
+

@@ -1,0 +1,140 @@
+#!/usr/bin/env ruby
+#Matthew Graves - vaniver@gmail.com - Feb 2011
+
+require 'rubygems'
+require 'rake'
+require 'configliere'
+require 'json'
+require 'nokogiri'
+
+$datadir = ARGV[0]
+puts "Revving the engine."
+
+$cathash = Hash.new {|hash, key| hash[key]="ERROR: #{key}"}
+$cathash.merge!({"Agriculture"=>"engineering-agriculture",
+  "Arts, Recreation, and Travel"=>"artsandculture",
+  "Banking, Finance, and Insurance"=>"economics-finance",
+  "Births, Deaths, Marraiges, and Divorces"=>"socialsciences-sociology",
+  "Business Enterprise"=>"economics",
+  "Construction and Housing"=>"economics-housing",
+  "Education"=>"socialsciences-education",
+  "Elections"=>"politicsandlaw-politicalscience",
+  "Energy and Utilities"=>"economics",
+  "Federal Government Finances and Employment"=>"economics-laborandemployment",
+  "Foreign Commerce and Aid"=>"economics-trade",
+  "Geography and Environment"=>"geography",
+  "Health and Nutrition"=>"medicine",
+  "Income, Expenditures, Poverty, and Wealth"=>"economics",
+  "Information and Communications"=>"socialsciences-communications",
+  "International Statistics"=>"history-modernhistory",
+  "Labor Force, Employment, and Earnings"=>"economics-laborandemployment",
+  "Law Enforcement, Courts, and Prisons"=>"politicsandlaw-law",
+  "National Security and Veterans Affairs"=>"politicsandlaw-politicalscience",
+  "Natural Resources"=>"geography",
+  "Other"=>nil,
+  "Population"=>"history-anthropology",
+  "Prices"=>"economics-pricesandinflation",
+  "Science and Technology"=>"science",
+  "Social Insurance and Human Services"=>"socialsciences-sociology",
+  "State and Local Government Finances and Employment"=>"economics-laborandemployment",
+  "Transportation"=>"engineering-transportation",
+  "Wholesale and Retail Trade"=>"economics-trade" })
+
+#Now that we have all of the dataset pages locally, let's start processing them.
+task :process_pages do
+  #If the output already exists, no need to process.
+  puts("Pages already processed.");next if File.exist?($datadir+"/fixd/data/catalog.yaml")
+  $final_array = []
+  $source_names = []
+  begin
+    Dir[$datadir+"/ripd/dataset_pages/*.html"].map { |file|
+      $final_array.push(process_page file)
+      #    puts file[/\d.*/]+" processed."
+    }
+  rescue
+    puts("There was an error processing the files. Check to make sure none of them are empty or corrupted.")
+  end
+
+  #Create an array of hashes out of the source lists.
+  #This could have been done earlier.
+  puts "-"*80
+  puts "There were "+$source_names.size.to_s+" unique agencies in the dataset."
+  source_array = []
+  0.upto($source_names.size-1) { |i|
+    source_array[i]={"id"=>i,"name"=>$source_names[i]} }
+  puts "-"*80
+  puts "Writing output files."x
+  FileUtils.mkdir_p $datadir+"/fixd/data/"
+  array_file = File.new($datadir+"/fixd/data/catalog.yaml",'w')
+  array_file.puts($final_array.to_yaml)
+  array_file.close
+  source_file = File.new($datadir+"/fixd/data/sources.yaml",'w')
+  source_file.puts(source_array.to_yaml)
+  source_file.close
+  puts "Done processing datasets!"
+end
+
+def process_page page
+  summary_table = []
+  doc = Nokogiri::HTML(File.new(page))
+  doc.xpath("//table[@class='details-table']//tr/td").each { |x| summary_table.push(x.content)}
+  summary_table.map!{|x| x.gsub(/(\t|\r|\n|   +)/,"")}
+  summary_table[17]=summary_table[17].to_i
+  summary_table[25]=summary_table[25].to_i
+
+  #Acquire the name.
+  name = doc.xpath("//h1")[1].content
+  
+  #Acquire the link; csv>txt>xls>anything
+  #anything will be in order on the page- xml>kml/kmz>Shapefile>Maps>rdf>pdf
+  linknode=doc.xpath("//table[@class='download-table']//a[contains(@href,'csv')]")
+  linknode=doc.xpath("//table[@class='download-table']//a[contains(@href,'txt')]") if linknode.empty?
+  linknode=doc.xpath("//table[@class='download-table']//a[contains(@href,'xls')]") if linknode.empty?
+  #Blank links are just "#". The others should have at least one / in them.
+  linknode=doc.xpath("//table[@class='download-table']//a[contains(@href,'/')]") if linknode.empty?
+  linknode.empty? ? link="No link given." : link=linknode[0]['href']
+  linknode.empty? ? data_size="None" : data_size=linknode[0].content[/(\d|\w).*/]
+  #The data.gov site links to /download/XXXX/YYY, except when it doesn't.
+  #This will make the link functional, unless it already starts with 'h'.
+  link="http://www.data.gov" << link unless (link[0]==104||link=="No link given.")
+
+  #Pull the overall rating.
+  rating=doc.xpath("//table[@class='ratetable']//img[starts-with(@src,'/images/stars')]")[0]['src'][/[0-5]/].to_i
+
+
+  #Check the list of sources to see if this data series exists.
+  source_id=$source_names.index(summary_table[1])
+  #If it doesn't, create it.
+  unless source_id
+    source_id=$source_names.size
+    $source_names.push(summary_table[1])
+  end
+  
+  #Now that we have everything, turn it into a hash and pass it back.
+  return Hash["title",name,"id",summary_table[25],"description",summary_table[15],"tags",summary_table[23],"category list",$cathash[summary_table[5]],"overall_rating",rating,"link",link,"dataset size",data_size,"source id",source_id,"extra",Hash[*summary_table]]
+end
+
+task :icss_file do
+  create_icss_file
+end
+
+task :download_pages do
+  puts "Downloading the pages to #{$datadir}/fixd/data/"
+  $final_array = YAML::load(File.open("#{$datadir}/fixd/data/catalog.yaml")) unless $final_array
+  $final_array.each do |hsh|
+    #This hits all the data types currently uploaded except one or two pathological files.
+    ext = hsh["link"][/[a-z]*\z/]
+    path=$datadir+"/fixd/data/#{hsh["id"]}"
+    path << ".#{ext}" if ext.size>0
+    #Don't copy if already done or the link is "No link given" 
+    next if File.exist?(path) || hsh["link"][0]==78
+    File.new(path,'w').write(open(hsh["link"]).read)
+    puts "#{url} => #{path}"
+  end
+  puts "Finished downloading the pages."
+end
+
+task :run => [:process_pages]
+#task :run => [:process_pages,:download_pages]
+
+Rake::Task[:run].invoke

@@ -1,0 +1,6 @@
+--- 
+namespace: gov.index
+protocol: data_sf
+filesystem_scheme: file
+
+url: http://datasf.org/?page=

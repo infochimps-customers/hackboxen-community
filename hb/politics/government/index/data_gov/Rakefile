@@ -1,0 +1,65 @@
+#Matthew Graves - vaniver@gmail.com - Feb 2011
+
+require 'hackboxen'
+require 'nokogiri'
+require 'open-uri'
+require 'configliere'
+require 'rubygems'
+
+HACKBOX_DIR = File.dirname(__FILE__)
+
+task :get_data do
+  #The catalog has over 30 pages of links to datasets.
+  $Listings=HackBoxen::Paths.ripd_dir+"/listings"
+  $Dataset_pages=HackBoxen::Paths.ripd_dir+"/dataset_pages"
+  #We need to rip the first page to check for more datasets.
+  #This should fail gracefully.
+  begin
+    #check if we have the right total.
+    num_local_datasets=Nokogiri::HTML(open("http://www.data.gov/catalog/raw/category/0/agency/0/filter//type//sort//page/1/count/100#data")).xpath("//td[contains(@class,'page-total')]")[0].content[/\d+,\d+/].gsub(/,/,"").to_i
+    get_dataset_listing_pages(num_datasets) if num_datasets > Dir[$Dataset_pages+"/*.html"].size
+    #Now that we have the pages of links, follow the links to get the pages for
+    #the datasets.
+    get_dataset_pages
+  rescue
+    puts("Error connecting, processing local files.")
+  end  
+  #Now that we have the dataset pages, eating the dataset pages and creating the
+  #output will be done in main.  
+end
+
+def get_dataset_listing_pages num_datasets
+  puts "Pulling the dataset listing pages."
+  FileUtils.mkdir_p($Listings)
+  num_datasets-=1 if num_datasets%100==0
+  (1..(num_datasets/100+1)).each do |page_num|
+    path = $Listings+"/datasets.page-#{page_num}.html"
+    url  = "http://www.data.gov/catalog/raw/category/0/agency/0/filter//type//sort//page/#{page_num}/count/100#data"
+    File.new(path,'w').write(open(url).read)
+    puts "#{url} => #{path}"
+  end
+end
+
+#The [5,4] is because the text looks like '/raw/XXXX'.
+def extract_dataset_ids_from_listings_path path
+  Nokogiri::HTML(open(path)).xpath("//a[starts-with(@href,'/raw')]").map {|x| x['href'][5,4].to_i}
+end
+
+def extract_dataset_ids
+  Dir[$Listings + "/*.html"].map { |path| extract_dataset_ids_from_listings_path(path) }.flatten.sort
+end
+
+def get_dataset_pages
+  puts "Pulling the dataset pages."
+  FileUtils.mkdir_p HackBoxen::Paths.ripd_dir+"/dataset_pages"
+  extract_dataset_ids.each do |id|
+    path=$Dataset_pages+"/#{id}.html"
+    next if File.exist?(path)
+    url="http://data.gov/raw/#{id}"
+    File.new(path,'w').write(open(url).read)
+    puts "#{url} => #{path}"
+  end
+  puts "Done pulling the dataset pages."
+end
+
+task :default => ['hb:create_working_config',:get_data,'hb:init']

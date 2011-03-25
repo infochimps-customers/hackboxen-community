@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'configliere'
+require 'rake'
+
+#
+# A simple example of executable main file. You don't have to use it if you don't want to.
+#
+
+inputdir  = ARGV[0]
+outputdir = ARGV[1]
+
+Settings.use :config_file
+Settings.read(File.join(outputdir, "env", "working_environment.yaml"))
+Settings.resolve!
+
+task :run do
+  #
+  # Fill me in! :)
+  #
+end
+
+Rake::Task[:run].invoke

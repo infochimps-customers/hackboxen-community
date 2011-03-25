@@ -1,0 +1,10 @@
+
+The following hackboxen need to be revisited and verified to work:
+
+* freebase/lists/freebase_tsv
+* geo/location/geonames/catalog
+* meta/factory/existing/hackbox_extractor
+* politics/government/index/data_gov
+* politics/government/index/data_sf
+* web/analytics/traffic/cedexis
+* economics/finance/stocks/y_historical

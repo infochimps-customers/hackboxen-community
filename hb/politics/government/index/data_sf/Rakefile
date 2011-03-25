@@ -1,0 +1,30 @@
+require 'hackboxen'
+require 'nokogiri'
+require 'open-uri'
+require 'configliere'
+require 'rubygems'
+
+HACKBOX_DIR = File.dirname(__FILE__)
+
+task :get_data do
+
+  page_num = 1
+  while (true)
+    url       = Settings['url'] + page_num.to_s
+    html_file = File.join(HackBoxen::Paths.ripd_dir, "page_rip_#{page_num}.html")
+    unless File.exists? html_file
+      html_doc = Nokogiri::HTML(open(url))
+      # Stop when we reach a page with no dataset titles
+      break if html_doc.xpath("//div[@class='title']").size == 0
+      File.open(html_file,'w') do |f|
+        puts "Writing #{File.basename(html_file)}"
+        f.write(open(url).read)
+      end
+    end
+    page_num += 1
+  end
+
+end
+
+task :default => ['hb:create_working_config',:get_data,'hb:init']
+

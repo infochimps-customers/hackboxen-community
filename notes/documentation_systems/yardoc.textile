@@ -1,0 +1,28 @@
+
+
+By default, YARD is compatible with the same RDoc syntax most Ruby developers are already familiar with. However, one of the biggest advantages of YARD is the extended meta-data syntax, commonly known as "tags", that you can use to express small bits of information in a structured and formal manner. While RDoc syntax expects you to describe your method in a completely free-form manner, YARD recommends declaring your parameters, return types, etc. with the @tag syntax, which makes outputting the documentation more consistent and easier to read. An example:
+
+        # Converts the object into textual markup given a specific format.
+        #
+        # @param [Symbol] format the format type, `:text` or `:html`
+        # @return [String] the object converted into the expected format.
+        def to_format(format = :html)
+          # format the object
+        end
+
+
+h4. Adding Tags to Documentation
+
+The tag syntax that YARD uses is the same @tag-style syntax you may have seen if you've ever coded in Java, Python, PHP, Objective-C or a myriad of other languages. The following tag adds an author tag to your class:
+
+# @author Loren Segal
+class MyClass
+end
+To allow for large amounts of text, the @tag syntax will recognize any indented lines following a tag as part of the tag data. For example:
+
+# @deprecated Use {#my_new_method} instead of this method because
+#   it uses a library that is no longer supported in Ruby 1.9.
+#   The new method accepts the same parameters.
+def mymethod
+end
+

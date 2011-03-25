@@ -1,0 +1,3 @@
+digital_element,jacob,1.5 days
+word_freq_bnc,jacob,3.5 hrs 
+infutor,jacob,2 hrs

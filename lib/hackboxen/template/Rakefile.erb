@@ -1,0 +1,17 @@
+require 'hackboxen'
+HACKBOX_DIR = File.dirname(__FILE__)
+
+task :get_data do
+  #
+  # Fill me in! :)
+  #
+end
+
+
+task :publish_data do
+  #
+  # Fill me in! :)
+  #
+end
+
+task :default => ['hb:create_working_config', :get_data, 'hb:init', :publish_data]
