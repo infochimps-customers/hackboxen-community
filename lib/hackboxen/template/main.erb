@@ -1,24 +1,28 @@
 #!/usr/bin/env ruby
 
-require 'rubygems'
-require 'configliere'
-require 'rake'
-
 #
-# A simple example of executable main file. You don't have to use it if you don't want to.
+# A simple example of executable main file. This script is NOT required to be ruby.
 #
 
+#
+# inputdir is the first argument your main script will get. It will ALWAYS get this. inputdir
+# will ALWAYS be a directory that contains (ripd/, rawd/, fixd/, and log/).
+#
 inputdir  = ARGV[0]
+
+#
+# outputdir is the second argument your main script will get. It will ALWAYS get this. outputdir
+# will always be a directory that contains (env/). In env/ is where you will find the yaml file
+# containing all the configuration settings from ../config/config.yaml.
+#
 outputdir = ARGV[1]
 
-Settings.use :config_file
-Settings.read(File.join(outputdir, "env", "working_environment.yaml"))
-Settings.resolve!
+#
+# Example. Reads the yaml file into a ruby hash (same as a javascript associative array, a java
+# hashmap, a python dictionary, etc) called 'options'
+#
+options = YAML.load(File.open(File.join(outputdir, "env", "working_environment.yaml")))
 
-task :run do
-  #
-  # Fill me in! :)
-  #
-end
-
-Rake::Task[:run].invoke
+puts "\n\nHere's your options, right back atcha"
+p options
+puts "\n\nMain script is done"
