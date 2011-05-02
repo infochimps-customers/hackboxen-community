@@ -1,0 +1,32 @@
+--- 
+namespace: culture.music.collections.analytics
+protocol: million_song_dataset
+filesystem_scheme: file
+
+targets:
+  catalog:
+    - name: million_song_dataset
+      title: The Million Song Dataset
+      description: |-
+        A collection of 28 datasets containing audio features and metadata for a million contemporary popular music tracks.
+
+        The collections represents a collaboration between LabROSA and The Echo Nest. More details, background, and instructions on how to use the datasets can be found at LabROSA’s site. The goal of sharing this data on Infochimps is to provide a large dataset for researchers to report results on, hence encouraging algorithms that scale to commercial sizes.
+
+        There is one dataset for each letter of the alphabet A-Z containing data for all songs that start with that latter, one dataset of additional files, and a small sample dataset.
+
+        Each of the datasets for each letter consists of song files in the HDF5 format.
+
+        Most of the data is licensed the same way as Echo Nest’s API. The code is under GNU public license.
+
+      tags:
+        - features
+        - audio
+        - research
+        - music
+        - artists
+        - dictionary
+        - bigdata
+        - echonest
+        - songs
+        - music_metadata
+
