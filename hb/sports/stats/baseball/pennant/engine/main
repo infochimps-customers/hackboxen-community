@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'rake'
+require 'configliere'
+require 'json'
+require 'rexml/document'
+
+Settings.use :config_file
+
+inputdir  = ARGV[0]
+outputdir = ARGV[1]
+
+#
+# Read in working config file
+#
+Settings.read(File.join(outputdir, "env", "working_environment.yaml"))
+Settings.resolve!
+
+# Path to rawd to process
+uncompressed_dir = File.join(inputdir, "rawd", "flatfiles")
+Dir.chdir(uncompressed_dir)
+datafiles = Dir.glob('???.xml') # only reading the team "rollup" files for now
+
+
+# Path to final output
+outd = File.join(outputdir, "data", "team_standings")
+code = File.join(outputdir, "code")
+outfile = File.join(outd, "team_records.tsv")
+avroschema = File.join(outputdir, "pennant.icss.json")
+directory outd
+directory code
+
+file outfile => outd do
+  unless File.exist? outfile
+    File.open(outfile, 'w') do |data|
+      datafiles.each do |dfile|
+        puts "Processing #{dfile}"
+        doc = REXML::Document.new(File.open(dfile))
+        info = doc.elements["*/info"]
+        team_id = info.attributes["teamID"]
+        team_city = info.attributes["location"]
+        team_name = info.attributes["name"]
+        doc.elements.each("team/seasons/season") do |elt|
+          year = elt.attributes["year"]
+          wins = elt.elements[2].attributes["W"]
+          loss = elt.elements[2].attributes["L"]
+          data.puts [team_id, team_city, team_name, year, wins, loss].join("\t")
+        end
+      end
+    end
+  end
+end
+
+#
+# Create avro schema for the tsv data file
+#
+file avroschema => outd do
+  valid_keys = %w[namespace protocol data_assets code_assets types messages targets catalog]
+  schema     = Settings.to_hash.reject{|k,v| !valid_keys.include?(k)}.to_json
+  File.open(avroschema, 'wb'){|f| f.puts(schema)}
+end
+
+#
+# Place code asset where it goes in the output directory structure.
+#
+task :code_assets => code do
+  code_asset = File.join(File.dirname(__FILE__), 'team_standings_endpoint.rb')
+  in_place   = File.join(code, File.basename(code_asset))
+  cp(code_asset, in_place)
+end
+
+task :run => [outfile, avroschema, :code_assets]
+
+Rake::Task[:run].invoke
