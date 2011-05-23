@@ -65,7 +65,7 @@ end
 # Place code asset where it goes in the output directory structure.
 #
 task :code_assets => code do
-  code_asset = File.join(File.dirname(__FILE__), 'team_standings_endpoint.rb')
+  code_asset = File.join(File.dirname(__FILE__), 'pennant_endpoint.rb')
   in_place   = File.join(code, File.basename(code_asset))
   cp(code_asset, in_place)
 end
