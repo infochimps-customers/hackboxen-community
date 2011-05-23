@@ -1,0 +1,37 @@
+$LOAD_PATH << '../../../../lib'
+
+require 'rubygems'
+require 'hackboxen'
+
+HACKBOX_DIR = File.dirname(__FILE__)
+
+# Global to keep track of where data is downloaded to
+ripd_file = ''
+
+#
+# Pull down data. FIXME: use imw.
+#
+task :get_data do
+  local_file = Settings['non_avro']['download_url'].gsub(/ftp?\:\/\//, "")
+  local_path = File.dirname(local_file)
+  ripd_path = File.join(HackBoxen::Paths.ripd_dir, local_path)
+  ripd_file = File.join(ripd_path, File.basename(local_file))
+  mkdir_p ripd_path unless File.exist? ripd_path
+  cd HackBoxen::Paths.ripd_dir
+  cmd = "wget -O %s %s" % [local_file, Settings['non_avro']['download_url']]
+  sh cmd unless File.exist? local_file
+end
+
+#
+# Unpack unix compressed data file into rawd_dir
+#
+task :unpack_data => :get_data do
+  uncompressed = "flatfiles"
+  output_path = File.join(HackBoxen::Paths.rawd_dir, File.basename(uncompressed))
+  next if File.exist? output_path
+  cmd = "tar -xf #{ripd_file}"
+  sh cmd unless File.exist? uncompressed
+  mv(uncompressed, output_path) if File.exist? uncompressed
+end
+
+task :default => ['hb:create_working_config', :unpack_data, 'hb:init']

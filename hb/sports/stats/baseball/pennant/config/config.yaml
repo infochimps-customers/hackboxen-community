@@ -1,0 +1,85 @@
+---
+namespace: sports.stats.baseball
+protocol: pennant
+
+messages:
+  team_standings:
+    request:
+      - name: team_standings_request
+        type: team_standings_request
+    response: team_standings_record
+    doc: Get a team's W-L record
+
+data_assets:
+  - name: team_standings_data_asset
+    location: data/team_standings
+    type: team_standings_record
+
+code_assets:
+  - name: team_standings_endpoint
+    location: code/team_standings_endpoint.rb
+  
+targets:
+  apeyeye:
+    - code_assets:
+        - team_standings_endpoint
+  
+  mysql:
+    - table_name: pennant_team_standings
+      database: sports_stats_baseball
+      name: baseball_pennant
+      data_assets:
+        - team_standings_data_asset
+    
+  catalog:
+    - name: baseball_pennant
+      title: Stats from Pennant data
+      description: Pennant data stats
+      tags:
+        - sports
+        - stats
+        - baseball
+        - win-loss
+      messages:
+        - team_standings
+
+types:
+  - name: team_standings_request
+    type: record
+    doc: Query api parameters for the team_standings message
+    fields:
+      - name: team_name
+        type: string
+        default: Detroit
+      - name: record_year
+        type: int
+        default: 2010
+
+  - name: team_standings_record
+    doc: Team info, year, wins, losses
+    type: record
+    fields:
+      - name: team_id
+        doc: Team ID
+        type: string
+      - name: team_city
+        doc: Team city
+        type: string
+      - name: team_name
+        doc: Team name
+        type: string
+      - name: record_year
+        doc: Year of record
+        type: int
+      - name: record_wins
+        doc: Wins for the year
+        type: int
+      - name: record_losses
+        doc: Losses for the year
+        type: int
+
+# not included in the output icss
+filesystem_scheme: file
+non_avro:
+  download_url: ftp://infochimps:pennantDB02@vargatron.com/pennantAPIv02.tar.gz
+
