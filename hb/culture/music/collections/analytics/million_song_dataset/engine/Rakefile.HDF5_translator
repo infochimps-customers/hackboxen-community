@@ -1,0 +1,42 @@
+# This Rakefile is for the processing of the HDF5 files in the million
+# song dataset.  The displaydata task contains the (Anderson Mills's) 
+# machine specific command line for running the java code which reads in
+# the HDF5 file.
+
+# This project was halted before this data was then written out as a
+# JSON file, but that was the next step.
+
+# The java file does have dependencies on the libhdf libraries
+# (executable), and the jhdf5.jar, jhdf5obj.jar, and jhdfobj.jar java
+# libraries.
+
+# Currently the only works on files in the local directory, so that
+# would need to be changed to translate files in the
+# million_song_dataset file structure.
+
+task :default => 'million:dataall'
+
+namespace :million do
+
+  desc 'display test song data'
+  def displaydata(src) 
+    sh "/System/Library/Frameworks/JavaVM.framework/Versions/1.4/Home/bin/java -Djava.library.path=/Users/nodog/lib/hdf-java/lib/macosx -Dfile.encoding=MacRoman -classpath /Users/nodog/work/infochimps/src/MillionSong/bin:/Users/nodog/lib/hdf-java/lib/jhdf5.jar:/Users/nodog/lib/hdf-java/lib/jhdf5obj.jar:/Users/nodog/lib/hdf-java/lib/jhdfobj.jar translator.HDF5_getters #{src}"
+  end
+
+  desc 'display all files to act upon'
+  task :filelist do
+    FileList['TR*.h5'].each do |src|
+      puts src
+    end
+  end
+
+  desc 'display data for all files in the current directory'
+  task :dataall do
+    FileList['TR*.h5'].each do |src|
+      displaydata(src)
+    end
+  end
+
+end
+
+
