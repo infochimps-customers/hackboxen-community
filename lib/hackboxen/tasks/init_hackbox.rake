@@ -8,8 +8,8 @@ namespace :hb do
   #
   # Read base config from default (local) filesystem
   #
-  HackBoxen::Config.read_config_dir("/etc/hackbox/hackbox.yaml", :file) if File.exist?("/etc/hackbox/hackbox.yaml")
-  HackBoxen::Config.read_config_dir(File.join(ENV['HOME'], ".hackbox"), :file)
+  HackBoxen::Config.read_config_dir("/etc/hackbox", :file) if File.directory?('/etc/hackbox')
+  HackBoxen::Config.read_config_dir(File.join(ENV['HOME'], ".hackbox"), :file) if ENV["HOME"]
   HackBoxen::Config.read_config_dir(File.join(HACKBOX_DIR, "config"), :file)
 
   HackBoxen::Paths.maybe_make_required_paths
@@ -31,7 +31,7 @@ namespace :hb do
 
     fs = Swineherd::FileSystem.get(Settings['filesystem_scheme'].to_sym)
     fs.open(HackBoxen::Paths.working_config, 'w'){|f| f.write(Settings.to_hash.to_yaml)}
-    fs.open(HackBoxen::Paths.working_config.sub('.yaml','.json'), 'w'){|f| f.write(Settings.to_json)}
+    fs.open(HackBoxen::Paths.working_config.sub('.yaml','.json'), 'w'){|f| f.write(Settings.to_hash.to_json)}
   end
 
   task :init => [:create_working_config] do
@@ -43,6 +43,25 @@ namespace :hb do
         puts "Processing script failed with #{res}"
       end
     end
+  end
+
+  # Right now, this a simple way to generate an icss from a hackbox config
+  task :icss do
+    file_name = Settings['protocol'] + '.icss.json'
+    File.open(File.join(HACKBOX_DIR, file_name), "w") do |file|
+      file.puts Settings.to_json
+    end
+  end
+
+  task :create_mini, :data, :fs do |t, args|
+    fs = Swineherd::FileSystem.get(args.fs.to_sym)
+    s3 = Swineherd::FileSystem.get(:s3, Settings['aws']['access_key'], Settings['aws']['secret_key'])
+    s3_path = File.join("s3://", Settings['aws']['s3_bucket'], "mini/hb", Settings['namespace'], Settings['protocol'], File.basename(args.data))
+    puts s3_path
+    s3.mkpath(s3_path)
+    s3_file = s3.open(s3_path, 'w')
+    s3_file.puts(fs.read)
+    s3_file.close
   end
 
 end

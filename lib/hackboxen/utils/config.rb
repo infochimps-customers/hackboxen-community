@@ -15,7 +15,7 @@ module HackBoxen
         begin
           if filename.downcase.end_with? ".yaml"
             contents = fs.open(File.join(path,filename)).read
-            Settings.merge!(YAML.load(contents))
+            Settings.deep_merge!(YAML.load(contents))
             fs.close
           end
         rescue
