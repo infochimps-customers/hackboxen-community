@@ -1,0 +1,446 @@
+---
+namespace: government.public.census
+protocol: demographics
+filesystem_scheme: file
+# This flag is set to true for initial publishing, then removed when fully complete
+under_consideration: true
+update_frequency: monthly
+
+ftp:
+  url: ftp2.census.gov
+  login: anonymous
+  data_dir: "census_2010/03-Demographic_Profile"
+  shp_dir: "geo/tiger/TIGER2010"
+
+data_assets:
+- name: census_data_asset
+  location: data/census2010_data.tsv
+  type: census_data_record
+code_assets:
+- name: demographics_endpoint
+  location: code/demographics_endpoint.rb
+
+targets:
+  geo_index:
+  - min_zoom: 3
+    data_assets:
+    - census_data_asset
+    max_zoom: 7
+    sort_field: geo_name
+    chars_per_page: 10000
+    table_name: geo_location_infochimps_place
+  catalog:
+  - name: census_2010_demographics
+    title: 2010 Census Demographic Profiles
+    description: |-
+      The profile shows data for age, sex, race, Hispanic or Latino origin, household relationship,
+      household type, group quarters population, housing occupancy, and housing tenure.  They are
+      released as individual profiles for each of the 50 states, the District of Columbia, and
+      Puerto Rico down to place/functioning minor civil divisions, as well as for the U.S., regions,
+      divisions, and other areas that cross state boundaries. (Release: May 2011)
+    tags:
+    - census
+    - demographics
+  apeyeye:
+  - code_assets:
+    - demographics_endpoint
+
+# any non-basic types declared above must be defined explicitly under this type heading
+types:
+- name: census_data_record
+  type: record
+  doc: Description of the census_data_record type
+  fields:
+  - name: pop_total_both
+    doc: "Population total years"
+    type: integer
+  - name: pop_under_5_both
+    doc: "Population under 5 years"
+    type: integer
+  - name: pop_5_to_9_both
+    doc: "Population 5 to 9 years"
+    type: integer
+  - name: pop_10_to_14_both
+    doc: "Population 10 to 14 years"
+    type: integer
+  - name: pop_15_to_19_both
+    doc: "Population 15 to 19 years"
+    type: integer
+  - name: pop_20_to_24_both
+    doc: "Population 20 to 24 years"
+    type: integer
+  - name: pop_25_to_29_both
+    doc: "Population 25 to 29 years"
+    type: integer
+  - name: pop_30_to_34_both
+    doc: "Population 30 to 34 years"
+    type: integer
+  - name: pop_35_to_39_both
+    doc: "Population 35 to 39 years"
+    type: integer
+  - name: pop_40_to_44_both
+    doc: "Population 40 to 44 years"
+    type: integer
+  - name: pop_45_to_49_both
+    doc: "Population 45 to 49 years"
+    type: integer
+  - name: pop_50_to_54_both
+    doc: "Population 50 to 54 years"
+    type: integer
+  - name: pop_55_to_59_both
+    doc: "Population 55 to 59 years"
+    type: integer
+  - name: pop_60_to_64_both
+    doc: "Population 60 to 64 years"
+    type: integer
+  - name: pop_65_to_69_both
+    doc: "Population 65 to 69 years"
+    type: integer
+  - name: pop_70_to_74_both
+    doc: "Population 70 to 74 years"
+    type: integer
+  - name: pop_75_to_79_both
+    doc: "Population 75 to 79 years"
+    type: integer
+  - name: pop_80_to_84_both
+    doc: "Population 80 to 84 years"
+    type: integer
+  - name: pop_over_85_both
+    doc: "Population over 85 years"
+    type: integer
+  - name: pop_total_male
+    doc: "Male Population total years"
+    type: integer
+  - name: pop_under_5_male
+    doc: "Male Population under 5 years"
+    type: integer
+  - name: pop_5_to_9_male
+    doc: "Male Population 5 to 9 years"
+    type: integer
+  - name: pop_10_to_14_male
+    doc: "Male Population 10 to 14 years"
+    type: integer
+  - name: pop_15_to_19_male
+    doc: "Male Population 15 to 19 years"
+    type: integer
+  - name: pop_20_to_24_male
+    doc: "Male Population 20 to 24 years"
+    type: integer
+  - name: pop_25_to_29_male
+    doc: "Male Population 25 to 29 years"
+    type: integer
+  - name: pop_30_to_34_male
+    doc: "Male Population 30 to 34 years"
+    type: integer
+  - name: pop_35_to_39_male
+    doc: "Male Population 35 to 39 years"
+    type: integer
+  - name: pop_40_to_44_male
+    doc: "Male Population 40 to 44 years"
+    type: integer
+  - name: pop_45_to_49_male
+    doc: "Male Population 45 to 49 years"
+    type: integer
+  - name: pop_50_to_54_male
+    doc: "Male Population 50 to 54 years"
+    type: integer
+  - name: pop_55_to_59_male
+    doc: "Male Population 55 to 59 years"
+    type: integer
+  - name: pop_60_to_64_male
+    doc: "Male Population 60 to 64 years"
+    type: integer
+  - name: pop_65_to_69_male
+    doc: "Male Population 65 to 69 years"
+    type: integer
+  - name: pop_70_to_74_male
+    doc: "Male Population 70 to 74 years"
+    type: integer
+  - name: pop_75_to_79_male
+    doc: "Male Population 75 to 79 years"
+    type: integer
+  - name: pop_80_to_84_male
+    doc: "Male Population 80 to 84 years"
+    type: integer
+  - name: pop_over_85_male
+    doc: "Male Population over 85 years"
+    type: integer
+  - name: pop_total_female
+    doc: "Female Population total years"
+    type: integer
+  - name: pop_under_5_female
+    doc: "Female Population under 5 years"
+    type: integer
+  - name: pop_5_to_9_female
+    doc: "Female Population 5 to 9 years"
+    type: integer
+  - name: pop_10_to_14_female
+    doc: "Female Population 10 to 14 years"
+    type: integer
+  - name: pop_15_to_19_female
+    doc: "Female Population 15 to 19 years"
+    type: integer
+  - name: pop_20_to_24_female
+    doc: "Female Population 20 to 24 years"
+    type: integer
+  - name: pop_25_to_29_female
+    doc: "Female Population 25 to 29 years"
+    type: integer
+  - name: pop_30_to_34_female
+    doc: "Female Population 30 to 34 years"
+    type: integer
+  - name: pop_35_to_39_female
+    doc: "Female Population 35 to 39 years"
+    type: integer
+  - name: pop_40_to_44_female
+    doc: "Female Population 40 to 44 years"
+    type: integer
+  - name: pop_45_to_49_female
+    doc: "Female Population 45 to 49 years"
+    type: integer
+  - name: pop_50_to_54_female
+    doc: "Female Population 50 to 54 years"
+    type: integer
+  - name: pop_55_to_59_female
+    doc: "Female Population 55 to 59 years"
+    type: integer
+  - name: pop_60_to_64_female
+    doc: "Female Population 60 to 64 years"
+    type: integer
+  - name: pop_65_to_69_female
+    doc: "Female Population 65 to 69 years"
+    type: integer
+  - name: pop_70_to_74_female
+    doc: "Female Population 70 to 74 years"
+    type: integer
+  - name: pop_75_to_79_female
+    doc: "Female Population 75 to 79 years"
+    type: integer
+  - name: pop_80_to_84_female
+    doc: "Female Population 80 to 84 years"
+    type: integer
+  - name: pop_over_85_female
+    doc: "Female Population over 85 years"
+    type: integer
+  - name: median_age_both
+    doc: "Median age of population"
+    type: integer
+  - name: median_age_male
+    doc: "Median age of male population"
+    type: integer
+  - name: median_age_female
+    doc: "Median age of female population"
+    type: integer
+  - name: pop_over_16
+    doc: "Population 16 years and over"
+    type: integer
+  - name: pop_over_16_male
+    doc: "Male Population 16 years and over"
+    type: integer
+  - name: pop_over_16_female
+    doc: "Female Population 16 years and over"
+    type: integer
+  - name: pop_over_18
+    doc: "Population 18 years and over"
+    type: integer
+  - name: pop_over_18_male
+    doc: "Male Population 18 years and over"
+    type: integer
+  - name: pop_over_18_female
+    doc: "Female Population 18 years and over"
+    type: integer
+  - name: pop_over_21
+    doc: "Population 21 years and over"
+    type: integer
+  - name: pop_over_21_male
+    doc: "Male Population 21 years and over"
+    type: integer
+  - name: pop_over_21_female
+    doc: "Female Population 21 years and over"
+    type: integer
+  - name: pop_over_62
+    doc: "Population 62 years and over"
+    type: integer
+  - name: pop_over_62_male
+    doc: "Male Population 62 years and over"
+    type: integer
+  - name: pop_over_62_female
+    doc: "Female Population 62 years and over"
+    type: integer
+  - name: pop_over_65
+    doc: "Population 65 years and over"
+    type: integer
+  - name: pop_over_65_male
+    doc: "Male Population 65 years and over"
+    type: integer
+  - name: pop_over_65_female
+    doc: "Female Population 65 years and over"
+    type: integer
+  - name: pop_one_race
+    doc: "Population of one race"
+    type: integer
+  - name: pop_one_race_white
+    doc: "Population of one race, White"
+    type: integer
+  - name: pop_one_race_black
+    doc: "Population of one race, Black or African American"
+    type: integer
+  - name: pop_one_race_native
+    doc: "Population of one race, American Indian and Alaska Native"
+    type: integer
+  - name: pop_one_race_asian
+    doc: "Population of one race, Asian"
+    type: integer
+  - name: pop_one_race_pacific_islander
+    doc: "Population of one race, Native Hawaiian and Other Pacific Islander"
+    type: integer
+  - name: pop_one_race_other
+    doc: "Population of one race, Other"
+    type: integer
+  - name: pop_two_race
+    doc: "Population of Two or More Races"
+    type: integer
+  - name: pop_two_race_white_and_native
+    doc: "Population of Two or More Races, White; American Indian and Alaska Native"
+    type: integer
+  - name: pop_two_race_white_and_asian
+    doc: "Population of Two or More Races, White; Asian"
+    type: integer
+  - name: pop_two_race_white_and_black
+    doc: "Population of Two or More Races, White; Black or African American"
+    type: integer
+  - name: pop_two_race_white_and_other
+    doc: "Population of Two or More Races, White; Some Other Race"
+    type: integer
+  - name: pop_white
+    doc: "White alone or in combination with one or more other races"
+    type: integer
+  - name: pop_black
+    doc: "Black or African American alone or in combination with one or more other races"
+    type: integer
+  - name: pop_native
+    doc: "American Indian and Alaska Native alone or in combination with one or more other races"
+    type: integer
+  - name: pop_asian
+    doc: "Asian alone or in combination with one or more other races"
+    type: integer
+  - name: pop_pacific_islander
+    doc: "Native Hawaiian and Other Pacific Islander alone or in combination with one or more other races"
+    type: integer
+  - name: pop_other
+    doc: "Some Other Race alone or in combination with one or more other races"
+    type: integer
+  - name: pop_in_households
+    doc: "Population in households"
+    type: integer
+  - name: pop_householder
+    doc: "Householder"
+    type: integer
+  - name: pop_spouse
+    doc: "Spouse "
+    type: integer
+  - name: pop_child
+    doc: "Child"
+    type: integer
+  - name: pop_own_child_under_18
+    doc: "Own child under 18 years"
+    type: integer
+  - name: pop_other_relatives
+    doc: "Other relatives"
+    type: integer
+  - name: pop_other_relatives_under_18
+    doc: "Other relatives, under 18 years"
+    type: integer
+  - name: pop_other_relatives_65_over
+    doc: "Other relatives, 65 years and over"
+    type: integer
+  - name: pop_non_relatives
+    doc: "Nonrelatives"
+    type: integer
+  - name: pop_non_relatives_under_18
+    doc: "Nonrelatives, under 18 years"
+    type: integer
+  - name: pop_non_relatives_65_over
+    doc: "Nonrelatives, 65 years and over"
+    type: integer
+  - name: pop_non_relatives_partner
+    doc: "Nonrelatives, unmarried partner"
+    type: integer
+  - name: pop_group_quarters
+    doc: "In group quarters"
+    type: integer
+  - name: pop_group_quarters_inst
+    doc: "In group quarters, Institutionalized population"
+    type: integer
+  - name: pop_group_quarters_inst_male
+    doc: "In group quarters, Male Institutionalized population"
+    type: integer
+  - name: pop_group_quarters_inst_female
+    doc: "In group quarters, Female Institutionalized population"
+    type: integer
+  - name: pop_group_quarters
+    doc: "In group quarters"
+    type: integer
+  - name: pop_group_quarters_noninst
+    doc: "In group quarters, Noninstitutionalized population"
+    type: integer
+  - name: pop_group_quarters_noninst_male
+    doc: "In group quarters, Male Noninstitutionalized population"
+    type: integer
+  - name: pop_group_quarters_noninst_female
+    doc: "In group quarters, Female Noninstitutionalized population"
+    type: integer
+
+- name: demographics_request
+  fields:
+  - name: lng
+    doc: longitude
+    type: float
+  - name: lat
+    doc: latitude
+    type: float
+  - name: zoom
+    doc: The resolution of map tile to return, ranges from 1 to 13 with 1 being the lowest and 13 being the highest.
+    type: int
+  - name: _limit
+    doc: An integer limit to the number of pages returned
+    type: int
+  - name: _from
+    doc: Integer offset to start results at. A multiple of 10.
+    type: int
+  type: record
+- name: geojson_geometry
+  doc: A geoJSON geometry
+  fields:
+  - name: coordinates
+    doc: A (possibly) nested array whose schema depends on @type@
+    type:
+      items: float
+      type: array
+  - name: type
+    doc: One of [Point, MultiPoint, LineString, MultiLineString, Polygon, MultiPolygon]
+    type: string
+  type: record
+- name: geojson_feature
+  doc: A geoJSON feature
+  fields:
+  - name: type
+    doc: Always "Feature" meaning this object is a valid geoJSON feature
+    type: string
+  - name: geometry
+    type: geojson_geometry
+  - name: properties
+    doc: An arbitrary set of key values describing this particular feature
+    type: demographics_record
+  type: record
+- name: geojson_feature_collection
+  doc: A sorted list of @features@ in the geo location. This list is a valid geoJSON 'FeatureCollection'.
+  fields:
+  - name: type
+    doc: Always "FeatureCollection" meaning this object is a valid geoJSON feature collection
+    type: string
+  - name: features
+    type:
+      items: geojson_feature
+      type: array
+  type: record

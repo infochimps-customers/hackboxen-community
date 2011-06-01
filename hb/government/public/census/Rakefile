@@ -1,0 +1,101 @@
+require 'hackboxen'
+require 'net/ftp'
+require 'sqliteshapedb'
+HACKBOX_DIR = File.dirname(__FILE__)
+
+def ftp
+  return @ftp_connection if @ftp_connection
+  @ftp_connection ||= Net::FTP.new(Settings['ftp']['url'])
+  @ftp_connection.login(Settings['ftp']['login'],Settings['ftp']['login'])
+  @ftp_connection.passive = true
+  @ftp_connection
+end
+
+def remote_needs_grabbing?(remote_path, local_path)
+  remote_time = ftp.mtime(remote_path, true)
+  remote_size = ftp.size(remote_path)
+  if File.exists?(local_path)
+    local_time = File.mtime(local_path)
+    local_size = File.size(local_path)
+    return false if remote_size == local_size && remote_time == local_time
+  end
+  remote_time
+end
+
+def get_zip_files(remote_path, local_path, rxp=".")
+  rx = Regexp.new(rxp)
+  dirlist = ftp.nlst(remote_path)
+  dirlist.reject! { |e| File.extname(e) != ".zip" || !rx.match(e) }
+  dirlist.each { |remote_zip_path|
+    local_zip_path = File.join(local_path, File.basename(remote_zip_path))
+    if rt=remote_needs_grabbing?(remote_zip_path, local_zip_path)
+      mkdir_p(local_path)
+      Dir[File.join(local_path, "*")].each { |f| File.unlink(f) }
+      ftp.getbinaryfile(remote_zip_path, local_zip_path)
+      File.utime(rt, rt, local_zip_path)
+    end
+  }
+end
+
+def unzip_files(path)
+  zipfiles = Dir[File.join(path, "**", "*.zip")]
+  zipfiles.each { |zipped_path|
+    zipdir = File.dirname(zipped_path)
+    if Dir[File.join(zipdir, "*")].length == 1
+      zipfile = File.basename(zipped_path)
+      puts "Unzipping #{zipped_path} ..."
+      sh "cd #{zipdir} && unzip #{zipfile}"
+    end
+  }
+end
+
+task :get_dem_data do
+  dirlist = ftp.nlst(Settings['ftp']['data_dir'])
+  dirlist.reject! { |e| e.index(".") || e =~ /\/national/i }
+  dirlist.each { |remote_path|
+    puts "Grabbing data for #{remote_path} ..."
+    local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
+    get_zip_files(remote_path, local_path)
+  }
+end
+
+task :unzip_dem_data => :get_dem_data do
+  unzip_files(File.join(HackBoxen::Paths.ripd_dir, Settings['ftp']['data_dir']))
+end
+
+task :get_shapefiles do
+  ripd = HackBoxen::Paths.ripd_dir
+  shp_dir = Settings['ftp']['shp_dir']
+  [ "COUNTY/2010", "STATE/2010" ].each { |subdir|
+    remote_path = "#{shp_dir}/#{subdir}"
+    local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
+    get_zip_files(remote_path, local_path, "tl_2010_us")
+  }
+end
+
+task :unzip_shapefiles => :get_shapefiles do
+  unzip_files(File.join(HackBoxen::Paths.ripd_dir, Settings['ftp']['shp_dir']))
+end
+
+task :process_shapefiles => :unzip_shapefiles do
+  sqlite3file = File.join(HackBoxen::Paths.rawd_dir, "shapes.sqlite3")
+  sqlite3time = File.exists?(sqlite3file) ? File.mtime(sqlite3file) : 0
+  shpfiles = Dir[File.join(HackBoxen::Paths.ripd_dir, "**", "*.shp")]
+  shpfiles.each { |shpfile|
+    # This Time verification logic needs to be looked at
+    next if sqlite3time != 0 and sqlite3time > File.mtime(shpfile)
+    puts "Processing shapefile #{shpfile} ..."
+    SqliteShapeDB.create_from_shapefile(shpfile, sqlite3file)
+  }
+end
+
+#
+# This task is intended to pull data down from a source. Examples include
+# the web, an ftp server, and Amazon's simple storage service (s3). As much
+# as possible this should be the only task that interacts with the 'outside'
+# world.
+#
+task :get_data => [:unzip_dem_data, :process_shapefiles]
+
+task :default => ['hb:create_working_config', :get_data, 'hb:init']
+
