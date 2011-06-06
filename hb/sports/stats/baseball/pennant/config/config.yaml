@@ -9,6 +9,11 @@ messages:
         type: team_standings_request
     response: team_standings_record
     doc: Get a team's W-L record
+    samples:
+    - response:
+      request:
+      - team_name: tigers
+      - record_year: 2010
 
 data_assets:
   - name: team_standings_data_asset
@@ -16,13 +21,13 @@ data_assets:
     type: team_standings_record
 
 code_assets:
-  - name: team_standings_endpoint
-    location: code/team_standings_endpoint.rb
+  - name: pennant_endpoint
+    location: code/pennant_endpoint.rb
   
 targets:
   apeyeye:
     - code_assets:
-        - team_standings_endpoint
+        - pennant_endpoint
   
   mysql:
     - table_name: pennant_team_standings
@@ -34,7 +39,7 @@ targets:
   catalog:
     - name: baseball_pennant
       title: Stats from Pennant data
-      description: Pennant data stats
+      description: Win-Loss records for all MLB teams, searchable by team name and year. 
       tags:
         - sports
         - stats
@@ -50,10 +55,8 @@ types:
     fields:
       - name: team_name
         type: string
-        default: Detroit
       - name: record_year
         type: int
-        default: 2010
 
   - name: team_standings_record
     doc: Team info, year, wins, losses
