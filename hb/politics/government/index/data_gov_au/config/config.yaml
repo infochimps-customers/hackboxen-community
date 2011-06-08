@@ -1,0 +1,5 @@
+--- 
+namespace: politics.government.index
+protocol: data_gov_au
+filesystem_scheme: file
+catalog_url: http://data.gov.au/data/

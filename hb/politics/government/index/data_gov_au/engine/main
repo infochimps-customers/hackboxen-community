@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+
+require 'nokogiri'
+require 'rubygems'
+require 'iconv'
+require 'rake'
+
+$cathash={"Business"=>"economics",
+  "Communication"=>"socialsciences-communications",
+  "Community"=>nil,
+  "Culture"=>"artsandculture",
+  "Education"=>"socialsciences-education",
+  "Emergencies"=>"medicine-publichealth",
+  "Employment"=>"economics-laborandemployment",
+  "Environment"=>"geography",
+  "Finance"=>"economics-finance",
+  "General"=>nil,
+  "Geography"=>"geography",
+  "Government"=>"politicsandlaw",
+  "Health"=>"medicine-publichealth",
+  "Industry"=>"economics",
+  "Information-communications-technologies"=>"computers-internet",
+  "Law"=>"politicsandlaw-law",
+  "Measurement"=>nil,
+  "Planning"=>nil,
+  "Politics"=>"politicsandlaw",
+  "Property"=>"geography",
+  "Recreation"=>"sports",
+  "Safety"=>"medicine-publichealth",
+  "Sciences"=>"science",
+  "Society"=>"socialsciences-sociology",
+  "Technology"=>"science",
+  "Tourism"=>"economics-trade",
+  "Transport"=>"engineering-transportation" }
+
+$inputdir  = ARGV[0]
+outputdir = ARGV[1]
+
+task :process_pages do
+  #If we already have some of the pages processed, figure out which pages we've processed.
+  $final_array=[]
+  outfile=File.join(outputdir,"catalog.yaml")
+  prev_data=YAML::load(File.open(outfile).read) if File.exist?(outfile)
+  if prev_data
+    puts "There were #{prev_data.size} datasets already in the catalog, and #{Dir[File.join($inputdir,"ripd/*")].size} total downloaded datasets."
+    prev_data.map!{|x| x=x['catalog name']}
+    Dir[File.join($inputdir,"ripd/*")].each {|file|
+      $final_array.push(process_page file) unless prev_data.index(File.basename(file)) }
+  else
+    puts "There are #{Dir[File.join($inputdir,"ripd/*")].size} total downloaded datasets."
+    Dir[File.join($inputdir,"ripd/*")].each {|file|
+      $final_array.push(process_page file)}
+  end
+  puts "We added #{$final_array.size} datasets to the catalog."
+  buffer=$final_array.to_yaml[5..-1]
+  ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
+  File.open(outfile,'a').write(ic.iconv(buffer))
+  #Also consider loading in the final array, adding everything, uniqing, and sorting. Seems like it would be simpler to code but longer to run, and I already wrote this code.
+end
+
+def process_page page
+  #Pull everything interesting out of the page.
+  doc = Nokogiri::HTML(File.new(page))
+  name=doc.xpath('//meta[@name="DCTERMS.Title"]')[0].attribute('content').to_s
+  desc=doc.xpath('//meta[@name="DCTERMS.Description"]')[0].attribute('content').to_s
+  tags=doc.xpath('//div[@class="entry"]//dd[@property="dc:keywords"]').children.map{|x| x.children.to_s}.delete_if{|n| n==""}
+  cats=doc.xpath('//div[@class="entry"]//dd[@property="dcat:theme"]').children.map{|x| $cathash[x.children.to_s]}.delete_if{|n| !n}
+  rat=doc.xpath('//div[starts-with(@id,"gdsr_mur_text")]').to_s[/\d\.\d/]
+  links,sizes=[],[]
+  doc.xpath('//a[@property="dcat:accessURL"]').each{|x| links.push(x.attribute('href').to_s[5..-1])}
+  doc.xpath('//span[@property="dc:format"]').each{|x| sizes.push(x.next.children.to_s)}
+  if links.size>1
+    ext=links.map{|x| File.extname(x)}
+    if ext.index(".csv")
+      sizes=sizes[ext.index(".csv")]
+      links=links[ext.index(".csv")]
+    elsif ext.index(".txt")
+      sizes=sizes[ext.index(".txt")]
+      links=links[ext.index(".txt")]
+    elsif ext.index(".xls")
+      sizes=sizes[ext.index(".xls")]
+      links=links[ext.index(".xls")]
+    else
+      sizes=sizes[0]
+      links=links[0]
+    end
+  else
+    sizes=sizes[0]
+    links=links[0]
+  end
+  sour=doc.xpath('//dd[@property="dc:creator"]').children[0].to_s.lstrip
+  
+  return Hash["title",name,"description",desc,"tags",tags,"category list",cats,"overall_rating",rat,"link",links,"dataset size",sizes,"source",sour,"catalog name",File.basename(page)]
+end
+
+task :run => [:process_pages]
+
+Rake::Task[:run].invoke

@@ -1,0 +1,30 @@
+require 'hackboxen'
+require 'nokogiri'
+require 'open-uri'
+require 'configliere'
+require 'rubygems'
+
+HACKBOX_DIR = File.dirname(__FILE__)
+
+task :get_data do
+  #The catalog is a single page of datasets in alphabetical order.
+  #It appears that the catalog page has most of the data we'll need, but that
+  #individual dataset pages have the description and dataset size.
+  begin
+    puts "Pulling the catalog page."
+    listing = Nokogiri::HTML(open(Settings['catalog_url']))
+    listing.xpath("//h3").each {|d| get_dataset_page d.children.attribute('href').to_s}
+    #File.new(File.join(HackBoxen::Paths.ripd_dir,"listing.html"),'w').write(open(Settings['catalog_url']).read)    
+  rescue
+    puts("Error connecting, processing local files.")
+  end
+end
+
+def get_dataset_page url
+  path = File.join(HackBoxen::Paths.ripd_dir,File.basename(url))
+  return if File.exist?(path)
+  File.new(path,'w').write(open(url).read)
+  puts "#{url} => #{path}"
+end
+
+task :default => ['hb:create_working_config', 'hb:icss', :get_data, 'hb:init']
