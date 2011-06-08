@@ -1,17 +1,25 @@
 data_assets: 
 - name: data_gov_au_data_asset
-  location: catalog.yaml
-  type: 
-under_consideration: "true"
+  location: data/name_of_dataset.tsv
+under_consideration: true
+update_frequency: monthly
+
 targets: 
   catalog: 
-  - name: data_gov_au_catalog
-    messages: 
-    - places
-    title: Data.gov.au Catalog
+  - name: data_gov_au_entry
+    title: Name Of Dataset Entry from Data.gov.au
     tags: 
-    - government
-    - datasets
-    - 
+    - tags
+    - from
+    - indivudual
+    - dataset
+    - metadata
     description: |-
-      A list of all datasets available from Data.gov.au, with a link to download it from their servers as well as metadata like description, data size, and tags.
+      A dataset from Data.gov.au, with the following metadata:
+      * Size: if applicable
+      * Type: if applicable
+      * Desc: if applicable
+      * Sexy: Yes, definitely
+    packages:
+    - data_assets:
+      - data_gov_au_data_asset
