@@ -67,7 +67,8 @@ end
 task :get_shapefiles do
   ripd = HackBoxen::Paths.ripd_dir
   shp_dir = Settings['ftp']['shp_dir']
-  [ "COUNTY/2010", "STATE/2010", "CD/111", "CSA/2010" ].each { |subdir|
+  [ "COUNTY/2010", "STATE/2010", "CD/111", "CSA/2010", "CNECTA/2010",
+    "CBSA/2010", "NECTA/2010" ].each { |subdir|
     remote_path = "#{shp_dir}/#{subdir}"
     local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
     puts "Grabbing shapefiles from #{remote_path} ..."

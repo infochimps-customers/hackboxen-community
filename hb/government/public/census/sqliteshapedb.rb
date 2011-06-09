@@ -9,19 +9,13 @@ module SqliteShapeDB
 
   def self.create_from_shapefile(shapefile_path, sqlite3_path)
     SqliteShapeDB.open_db_no_check(sqlite3_path)
-    begin
-      SqliteShapeDB.create_tables
-      mt = File.mtime(shapefile_path).strftime("%Y-%m-%d %H:%M:%S")
-      if SqliteShapeDB.check_time(shapefile_path, mt)
-        SqliteShapeDB.process_shapes(shapefile_path)
-        SqliteShapeDB.insert_timestamp(shapefile_path, mt)
-      end
-    rescue => e
-      puts "  ERROR: #{e.class} - #{e.message}"
-      e.backtrace.each { |b| puts "    #{b}" }
-    ensure
-      @db.close
+    SqliteShapeDB.create_tables
+    mt = File.mtime(shapefile_path).strftime("%Y-%m-%d %H:%M:%S")
+    if SqliteShapeDB.check_time(shapefile_path, mt)
+      SqliteShapeDB.process_shapes(shapefile_path)
+      SqliteShapeDB.insert_timestamp(shapefile_path, mt)
     end
+    @db.close
   end
 
   def self.open_db(filename)
@@ -45,8 +39,14 @@ private
         name = attrs["NAMELSAD10"]
         name = attrs["NAME10"] if !name || name.empty?
         geo_key = attrs["LSAD10"] + attrs["GEOID10"]
-        geometry = RGeo::GeoJSON.encode(record.geometry).to_json
-        SqliteShapeDB.insert_shape(geo_key, name, geometry)
+        begin
+          geometry = RGeo::GeoJSON.encode(record.geometry).to_json
+          SqliteShapeDB.insert_shape(geo_key, name, geometry)
+        rescue => e
+          puts "  ERROR: on '#{name}', key '#{geo_key}'"
+          puts "  ERROR: #{e.class} - #{e.message}"
+          e.backtrace.each { |b| puts "    #{b}" }
+        end
         n += 1
       }
       puts

@@ -47,7 +47,9 @@ def import_geo_file(path)
     county_fips = line[29..31].strip
     cousub_fips = line[36..40].strip
     place_fips = line[45..49].strip
+    cbsa = line[112..116].strip
     csa = line[124..126].strip
+    necta = line[127..131].strip
     cd = line[153..154].strip
     sldu = line[155..157].strip
     sldl = line[158..160].strip
@@ -56,6 +58,10 @@ def import_geo_file(path)
     geo_key = lsadc + case lsadc
       when "M0"
         csa
+      when "M1", "M2"
+        cbsa
+      when "M5", "M6"
+        necta
       when "06", "15"
         state_fips + county_fips
       when "LU"
@@ -64,10 +70,14 @@ def import_geo_file(path)
         state_fips + sldl
       when /^C\d/
         state_fips + cd
-      when "25", "47", "57"
+      when "21", "25", "37", "47", "57"
         state_fips + place_fips
       when "43", "44"
-        state_fips + county_fips + cousub_fips
+        if cousub_fips.empty?
+          state_fips + place_fips
+        else
+          state_fips + county_fips + cousub_fips
+        end
       else
         state_fips + (county_fips+csa+cd+sldu+sldl)
     end
