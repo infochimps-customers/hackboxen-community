@@ -8,7 +8,7 @@ require 'sqlite3'
 module SqliteShapeDB
 
   def self.create_from_shapefile(shapefile_path, sqlite3_path)
-    SqliteShapeDB.open_db(sqlite3_path)
+    SqliteShapeDB.open_db_no_check(sqlite3_path)
     begin
       SqliteShapeDB.create_tables
       mt = File.mtime(shapefile_path).strftime("%Y-%m-%d %H:%M:%S")
@@ -22,6 +22,13 @@ module SqliteShapeDB
     ensure
       @db.close
     end
+  end
+
+  def self.open_db(filename)
+    if !File.exists?(filename)
+      raise "SQLite database not found: #{filename}"
+    end
+    SqliteShapeDB.open_db_no_check(filename)
   end
 
 private
@@ -46,7 +53,7 @@ private
     }
   end
 
-  def self.open_db(filename)
+  def self.open_db_no_check(filename)
     @db = SQLite3::Database.new(filename)
     @db.synchronous = 0
     @db.execute("pragma locking_mode = exclusive")
