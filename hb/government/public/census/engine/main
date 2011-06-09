@@ -48,6 +48,7 @@ def import_geo_file(path)
     cousub_fips = line[36..40].strip
     place_fips = line[45..49].strip
     cbsa = line[112..116].strip
+    metdiv = line[119..123].strip
     csa = line[124..126].strip
     necta = line[127..131].strip
     cd = line[153..154].strip
@@ -60,6 +61,8 @@ def import_geo_file(path)
         csa
       when "M1", "M2"
         cbsa
+      when "M3"
+        cbsa + metdiv
       when "M5", "M6"
         necta
       when "06", "15"
