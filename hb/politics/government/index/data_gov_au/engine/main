@@ -41,7 +41,6 @@ task :process_pages do
   FileUtils.mkdir_p(File.join($outputdir,"data"))
   #If we already have some of the pages processed, figure out which pages we've processed.
   $final_array=[]
-  $count=0
   outfile=File.join($outputdir,"catalog.yaml")
   prev_data=YAML::load(File.open(outfile).read) if File.exist?(outfile)
   if prev_data
@@ -55,10 +54,11 @@ task :process_pages do
       $final_array.push(process_page file)}
   end
   puts "We added #{$final_array.size} datasets to the catalog."
-  puts "There were #{$count} datasets that failed to download."
   buffer=$final_array.to_yaml[5..-1]
   ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
   File.open(outfile,'a').write(ic.iconv(buffer))
+
+  puts "There are now #{(Dir[File.join($outputdir,"data/*")]/2).to_s} downloaded datasets."
   #Also consider loading in the final array, adding everything, uniqing, and sorting. Seems like it would be simpler to code but longer to run, and I already wrote this code.
 end
 
@@ -96,7 +96,7 @@ def process_page page
   end
   sour=doc.xpath('//dd[@property="dc:creator"]').children[0].to_s.lstrip
   
-  if links
+  if links and not links.empty? and not File.extname(links)[0..3]=".htm"
     #Generate ICSS
     bname = File.basename(page)
     icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
@@ -112,22 +112,32 @@ def process_page page
     #      * Sexy: Yes, definitely"
     icss.gsub!("DESCDESCDESC",icss_desc)
     path = File.join($outputdir,"data",bname+".icss.json")
-    File.new(path,'w').write(icss) unless File.exist?(path)
+    ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
+    File.new(path,'w').write(ic.iconv(icss)) unless File.exist?(path)
     
     #Pull down dataset
     begin
       path = File.join($outputdir,"data",data_name)
       File.new(path,'w').write(open(links).read) unless File.exist?(path)
     rescue
-      $count+=1 
+      puts "There was an error pulling down #{data_name} from #{links}."
     end
-  else
-    puts File.basename(page)
   end
   #Add to catalog
   return Hash["title",name,"description",desc,"tags",tags,"category list",cats,"overall_rating",rat,"link",links,"dataset size",sizes,"source",sour,"catalog name",File.basename(page)]
 end
 
-task :run => [:process_pages]
+task :catalog_icss do
+  icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
+  icss.gsub!("data/name_of_dataset.tsv","catalog.yaml")
+  icss.gsub!("au_entry","au_catalog")
+  icss.gsub!("Name Of Dataset Entry from data.gov.au","data.gov.au Dataset Catalog")
+  icss.gsub!("- tags","- government\n    - australia")
+  icss_desc="The Australian government posts datasets online for public use, and there are currently 270 datasets available. All of the datasets which are a single file are also hosted here on infochimps, but this catalog contains basic metadata about all of the datasets available, including links to websites which can't be easily downloaded."
+  icss.gsub!("DESCDESCDESC",icss_desc)
+  File.new(File.join($outputdir,"catalog.icss.json"),'w').write(icss) #Always update the catalog icss.
+end
+
+task :run => [:process_pages, :catalog_icss]
 
 Rake::Task[:run].invoke
