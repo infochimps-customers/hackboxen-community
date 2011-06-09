@@ -45,6 +45,8 @@ def import_geo_file(path)
     logrecno = line[18..24]
     state_fips = line[27..28].strip
     county_fips = line[29..31].strip
+    cousub_fips = line[36..40].strip
+    place_fips = line[45..49].strip
     csa = line[124..126].strip
     cd = line[153..154].strip
     sldu = line[155..157].strip
@@ -52,12 +54,22 @@ def import_geo_file(path)
     name = line[226..315].strip
     lsadc = line[359..360]
     geo_key = lsadc + case lsadc
-      when "M0";   csa
-      when "06";   state_fips + county_fips
-      when "LU";   state_fips + sldu
-      when "LL";   state_fips + sldl
-      when /^C\d/; state_fips + cd
-      else;        state_fips + (county_fips+csa+cd+sldu+sldl)
+      when "M0"
+        csa
+      when "06", "15"
+        state_fips + county_fips
+      when "LU"
+        state_fips + sldu
+      when "LL"
+        state_fips + sldl
+      when /^C\d/
+        state_fips + cd
+      when "25", "47", "57"
+        state_fips + place_fips
+      when "43", "44"
+        state_fips + county_fips + cousub_fips
+      else
+        state_fips + (county_fips+csa+cd+sldu+sldl)
     end
     geoHash[logrecno] = { :name => name, :geo_key => geo_key }
   }
