@@ -6,6 +6,10 @@ require 'rubygems'
 
 HACKBOX_DIR = File.dirname(__FILE__)
 
+task :move_template do
+  sh "cp config/icss.yaml #{HackBoxen::Paths.rawd_dir}" unless File.exist?(File.join(HackBoxen::Paths.rawd_dir,"icss.yaml"))
+end
+
 task :get_data do
   #The catalog is a single page of datasets in alphabetical order.
   #It appears that the catalog page has most of the data we'll need, but that
@@ -14,7 +18,6 @@ task :get_data do
     puts "Pulling the catalog page."
     listing = Nokogiri::HTML(open(Settings['catalog_url']))
     listing.xpath("//h3").each {|d| get_dataset_page d.children.attribute('href').to_s}
-    #File.new(File.join(HackBoxen::Paths.ripd_dir,"listing.html"),'w').write(open(Settings['catalog_url']).read)    
   rescue
     puts("Error connecting, processing local files.")
   end
@@ -27,4 +30,4 @@ def get_dataset_page url
   puts "#{url} => #{path}"
 end
 
-task :default => ['hb:create_working_config', 'hb:icss', :get_data, 'hb:init']
+task :default => ['hb:create_working_config', :move_template, :get_data, 'hb:init']
