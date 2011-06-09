@@ -3,6 +3,7 @@
 require 'yaml'
 require 'fileutils'
 require 'sqliteshapedb'
+require 'calc_demographic_properties'
 
 # inputdir is the first argument your main script will get. It will ALWAYS get
 # this. inputdir will ALWAYS be a directory that contains (ripd/, rawd/, fixd/,
@@ -23,123 +24,9 @@ outputdir = ARGV[1]
 opts = { 'ftp' => { 'data_dir' => 'census_2010/03-Demographic_Profile' }, 
   'data_assets' => [{ 'location'=> 'data/census2010_data.tsv'}] }
 
-def calc_demographic_properties(fields)
-  {
-  :pop_total_both => fields[5],
-  :pop_under_5_both => fields[6],
-  :pop_5_to_9_both => fields[7],
-  :pop_10_to_14_both => fields[8],
-  :pop_15_to_19_both => fields[9],
-  :pop_20_to_24_both => fields[10],
-  :pop_25_to_29_both => fields[11],
-  :pop_30_to_34_both => fields[12],
-  :pop_35_to_39_both => fields[13],
-  :pop_40_to_44_both => fields[14],
-  :pop_45_to_49_both => fields[15],
-  :pop_50_to_54_both => fields[16],
-  :pop_55_to_59_both => fields[17],
-  :pop_60_to_64_both => fields[18],
-  :pop_65_to_69_both => fields[19],
-  :pop_70_to_74_both => fields[20],
-  :pop_75_to_79_both => fields[21],
-  :pop_80_to_84_both => fields[22],
-  :pop_over_85_both => fields[23],
-  :pop_total_male => fields[24],
-  :pop_under_5_male => fields[25],
-  :pop_5_to_9_male => fields[26],
-  :pop_10_to_14_male => fields[27],
-  :pop_15_to_19_male => fields[28],
-  :pop_20_to_24_male => fields[29],
-  :pop_25_to_29_male => fields[30],
-  :pop_30_to_34_male => fields[31],
-  :pop_35_to_39_male => fields[32],
-  :pop_40_to_44_male => fields[33],
-  :pop_45_to_49_male => fields[34],
-  :pop_50_to_54_male => fields[35],
-  :pop_55_to_59_male => fields[36],
-  :pop_60_to_64_male => fields[37],
-  :pop_65_to_69_male => fields[38],
-  :pop_70_to_74_male => fields[39],
-  :pop_75_to_79_male => fields[40],
-  :pop_80_to_84_male => fields[41],
-  :pop_over_85_male => fields[42],
-  :pop_total_female => fields[43],
-  :pop_under_5_female => fields[44],
-  :pop_5_to_9_female => fields[45],
-  :pop_10_to_14_female => fields[46],
-  :pop_15_to_19_female => fields[47],
-  :pop_20_to_24_female => fields[48],
-  :pop_25_to_29_female => fields[49],
-  :pop_30_to_34_female => fields[50],
-  :pop_35_to_39_female => fields[51],
-  :pop_40_to_44_female => fields[52],
-  :pop_45_to_49_female => fields[53],
-  :pop_50_to_54_female => fields[54],
-  :pop_55_to_59_female => fields[55],
-  :pop_60_to_64_female => fields[56],
-  :pop_65_to_69_female => fields[57],
-  :pop_70_to_74_female => fields[58],
-  :pop_75_to_79_female => fields[59],
-  :pop_80_to_84_female => fields[60],
-  :pop_over_85_female => fields[61],
-  :median_age_both => fields[62],
-  :median_age_male => fields[63],
-  :median_age_female => fields[64],
-  :pop_over_16 => fields[65],
-  :pop_over_16_male => fields[66],
-  :pop_over_16_female => fields[67],
-  :pop_over_18 => fields[68],
-  :pop_over_18_male => fields[69],
-  :pop_over_18_female => fields[70],
-  :pop_over_21 => fields[71],
-  :pop_over_21_male => fields[72],
-  :pop_over_21_female => fields[73],
-  :pop_over_62 => fields[74],
-  :pop_over_62_male => fields[75],
-  :pop_over_62_female => fields[76],
-  :pop_over_65 => fields[77],
-  :pop_over_65_male => fields[78],
-  :pop_over_65_female => fields[79],
-  :pop_one_race => fields[81],
-  :pop_one_race_white => fields[82],
-  :pop_one_race_black => fields[83],
-  :pop_one_race_native => fields[84],
-  :pop_one_race_asian => fields[85],
-  :pop_one_race_pacific_islander => fields[93],
-  :pop_one_race_other => fields[98],
-  :pop_two_race => fields[99],
-  :pop_two_race_white_and_native => fields[100],
-  :pop_two_race_white_and_asian => fields[101],
-  :pop_two_race_white_and_black => fields[102],
-  :pop_two_race_white_and_other => fields[103],
-  :pop_white => fields[104],
-  :pop_black => fields[105],
-  :pop_native => fields[106],
-  :pop_asian => fields[107],
-  :pop_pacific_islander => fields[108],
-  :pop_other => fields[109],
-  :pop_in_households => fields[135],
-  :pop_householder => fields[136],
-  :pop_spouse => fields[137],
-  :pop_child => fields[138],
-  :pop_own_child_under_18 => fields[139],
-  :pop_other_relatives => fields[140],
-  :pop_other_relatives_under_18 => fields[141],
-  :pop_other_relatives_65_over => fields[142],
-  :pop_non_relatives => fields[143],
-  :pop_non_relatives_under_18 => fields[144],
-  :pop_non_relatives_65_over => fields[145],
-  :pop_non_relatives_partner => fields[146],
-  :pop_group_quarters => fields[147],
-  :pop_group_quarters_inst => fields[148],
-  :pop_group_quarters_inst_male => fields[149],
-  :pop_group_quarters_inst_female => fields[150],
-  :pop_group_quarters => fields[151],
-  :pop_group_quarters_noninst => fields[152],
-  :pop_group_quarters_noninst_male => fields[153],
-  :pop_group_quarters_noninst_female => fields[154]
-  }
-end
+# Open some log files
+$xref_log = File.open("#{inputdir}/log/xref.log", "w")
+
 
 def import_demographics_file(path)
   demoHash = Hash.new
@@ -152,31 +39,51 @@ def import_demographics_file(path)
 end
 
 def import_geo_file(path)
+  $xref_log.puts "PATH: #{path}"
   geoHash = Hash.new
   File.foreach(path) { |line|
     logrecno = line[18..24]
-    state_fips = line[27..28]
-    county_fips = line[29..31]
+    state_fips = line[27..28].strip
+    county_fips = line[29..31].strip
+    csa = line[124..126].strip
+    cd = line[153..154].strip
+    sldu = line[155..157].strip
+    sldl = line[158..160].strip
     name = line[226..315].strip
-    geoHash[logrecno] = { :name => name,
-      :state_fips => state_fips, :county_fips => county_fips }
+    lsadc = line[359..360]
+    geo_key = lsadc + case lsadc
+      when "M0";   csa
+      when "06";   state_fips + county_fips
+      when "LU";   state_fips + sldu
+      when "LL";   state_fips + sldl
+      when /^C\d/; state_fips + cd
+      else;        state_fips + (county_fips+csa+cd+sldu+sldl)
+    end
+    geoHash[logrecno] = { :name => name, :geo_key => geo_key }
   }
   geoHash
 end
 
 def cross_reference(demoHash, geoHash, &b)
+  lsadc_not_found = Array.new
   demoHash.each { |logrecno,properties|
-    next if geoHash[logrecno][:county_fips].strip.empty?
-    geoid = geoHash[logrecno][:state_fips] + geoHash[logrecno][:county_fips]
-    name,geojson = SqliteShapeDB.find_shape(geoid.strip)
-    feature_json = "{\"type\":\"Feature\",\"geometry\":#{geojson},\"properties\":#{properties.to_json}}"
-    yield(geoid, name, feature_json)
+    name = geoHash[logrecno][:name]
+    geo_key = geoHash[logrecno][:geo_key]
+    xref_name,geojson = SqliteShapeDB.find_shape(geo_key)
+    if geojson.nil?
+      lsadc_not_found.push(geo_key[0..1])
+      $xref_log.puts "  geo_key '#{geo_key}' not found for #{name}"
+    else
+      feature_json = "{\"type\":\"Feature\",\"geometry\":#{geojson},\"properties\":#{properties.to_json}}"
+      yield(geo_key, xref_name, feature_json)
+    end
   }
+  $xref_log.puts "  LSADC not found: #{lsadc_not_found.sort.uniq.join(" ")}"
 end
 
 def generate_geojson(tsvfile, demoHash, geoHash)
-  cross_reference(demoHash, geoHash) { |geoid,name,feature_json|
-    tsvfile.print "demo.census\t#{geoid}\t#{name}\t"
+  cross_reference(demoHash, geoHash) { |geo_key,name,feature_json|
+    tsvfile.print "demo.census\t#{geo_key}\t#{name}\t"
     tsvfile.print feature_json
     tsvfile.puts
   }

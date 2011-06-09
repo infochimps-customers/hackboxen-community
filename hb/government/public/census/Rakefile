@@ -30,7 +30,8 @@ def get_zip_files(remote_path, local_path, rxp=".")
     local_zip_path = File.join(local_path, File.basename(remote_zip_path))
     if rt=remote_needs_grabbing?(remote_zip_path, local_zip_path)
       mkdir_p(local_path)
-      Dir[File.join(local_path, "*")].each { |f| File.unlink(f) }
+      Dir["#{local_zip_path[0..-5]}*"].each { |f| File.unlink(f) }
+      puts "  ftp #{remote_zip_path} -> #{local_zip_path}"
       ftp.getbinaryfile(remote_zip_path, local_zip_path)
       File.utime(rt, rt, local_zip_path)
     end
@@ -41,8 +42,8 @@ def unzip_files(path)
   zipfiles = Dir[File.join(path, "**", "*.zip")]
   zipfiles.each { |zipped_path|
     zipdir = File.dirname(zipped_path)
-    if Dir[File.join(zipdir, "*")].length == 1
-      zipfile = File.basename(zipped_path)
+    zipfile = File.basename(zipped_path)
+    if Dir[File.join(zipdir, "#{zipfile[0..-5]}*")].length == 1
       puts "Unzipping #{zipped_path} ..."
       sh "cd #{zipdir} && unzip #{zipfile}"
     end
@@ -66,10 +67,17 @@ end
 task :get_shapefiles do
   ripd = HackBoxen::Paths.ripd_dir
   shp_dir = Settings['ftp']['shp_dir']
-  [ "COUNTY/2010", "STATE/2010" ].each { |subdir|
+  [ "COUNTY/2010", "STATE/2010", "CD/111", "CSA/2010" ].each { |subdir|
     remote_path = "#{shp_dir}/#{subdir}"
     local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
+    puts "Grabbing shapefiles from #{remote_path} ..."
     get_zip_files(remote_path, local_path, "tl_2010_us")
+  }
+  [ "SLDU/2010", "SLDL/2010", "PLACE/2010", "COUSUB/2010" ].each { |subdir|
+    remote_path = "#{shp_dir}/#{subdir}"
+    local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
+    puts "Grabbing shapefiles from #{remote_path} ..."
+    get_zip_files(remote_path, local_path, "tl_2010_\\d\\d_")
   }
 end
 
@@ -78,15 +86,19 @@ task :unzip_shapefiles => :get_shapefiles do
 end
 
 task :process_shapefiles => :unzip_shapefiles do
-  sqlite3file = File.join(HackBoxen::Paths.rawd_dir, "shapes.sqlite3")
-  sqlite3time = File.exists?(sqlite3file) ? File.mtime(sqlite3file) : 0
+  sqlite3file = File.join(HackBoxen::Paths.rawd_dir, "shapes.sqlite")
+  sqlite3time = File.exists?(sqlite3file) ? File.mtime(sqlite3file) : nil
   shpfiles = Dir[File.join(HackBoxen::Paths.ripd_dir, "**", "*.shp")]
   shpfiles.each { |shpfile|
-    # This Time verification logic needs to be looked at
-    next if sqlite3time != 0 and sqlite3time > File.mtime(shpfile)
     puts "Processing shapefile #{shpfile} ..."
     SqliteShapeDB.create_from_shapefile(shpfile, sqlite3file)
   }
+end
+
+# This task lets us process shapefiles without the overhead of it's dependencies
+# which go out and check for new/updated data on the ftp server.
+task :process_shapefiles_nodep do
+  Rake::Task[:process_shapefiles].execute
 end
 
 #
@@ -98,4 +110,3 @@ end
 task :get_data => [:unzip_dem_data, :process_shapefiles]
 
 task :default => ['hb:create_working_config', :get_data, 'hb:init']
-
