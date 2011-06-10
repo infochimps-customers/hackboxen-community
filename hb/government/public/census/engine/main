@@ -38,53 +38,65 @@ def import_demographics_file(path)
   demoHash
 end
 
+def calculate_geo_key(line)
+  state_fips = line[27..28].strip
+  county_fips = line[29..31].strip
+  cousub_fips = line[36..40].strip
+  place_fips = line[45..49].strip
+  aianhh = line[76..79].strip
+  aianhhcc = line[85..86].strip
+  anrc = line[105..109].strip
+  cbsa = line[112..116].strip
+  metdiv = line[119..123].strip
+  csa = line[124..126].strip
+  necta = line[127..131].strip
+  cd = line[153..154].strip
+  sldu = line[155..157].strip
+  sldl = line[158..160].strip
+  lsadc = line[359..360]
+  geo_key = lsadc + case lsadc
+    when "M0"
+      csa
+    when "M1", "M2"
+      cbsa
+    when "M3"
+      cbsa + metdiv
+    when "M5", "M6"
+      necta
+    when "03", "04", "05", "06", "12", "13", "15"
+      state_fips + county_fips
+    when "LU"
+      state_fips + sldu
+    when "LL"
+      state_fips + sldl
+    when /^C\d/
+      state_fips + cd
+    when "21", "25", "37", "47", "53", "55", "57", "62"
+      state_fips + place_fips
+    when "39", "43", "44", "45", "49"
+      if cousub_fips.empty?
+        state_fips + place_fips
+      else
+        state_fips + county_fips + cousub_fips
+      end
+    when "77"
+      state_fips + anrc
+    when "78", "79", /^[89]\d$/
+      # "81", "82", "85", "86", "87", "89", "91", "92", "96", "97", "98"
+      aianhh + (aianhhcc=="D3" || aianhhcc=="F1" ? "T" : "R")
+    else
+      state_fips + (county_fips+csa+cd+sldu+sldl)
+  end
+  geo_key
+end
+
 def import_geo_file(path)
   $xref_log.puts "PATH: #{path}"
   geoHash = Hash.new
   File.foreach(path) { |line|
     logrecno = line[18..24]
-    state_fips = line[27..28].strip
-    county_fips = line[29..31].strip
-    cousub_fips = line[36..40].strip
-    place_fips = line[45..49].strip
-    cbsa = line[112..116].strip
-    metdiv = line[119..123].strip
-    csa = line[124..126].strip
-    necta = line[127..131].strip
-    cd = line[153..154].strip
-    sldu = line[155..157].strip
-    sldl = line[158..160].strip
     name = line[226..315].strip
-    lsadc = line[359..360]
-    geo_key = lsadc + case lsadc
-      when "M0"
-        csa
-      when "M1", "M2"
-        cbsa
-      when "M3"
-        cbsa + metdiv
-      when "M5", "M6"
-        necta
-      when "06", "15"
-        state_fips + county_fips
-      when "LU"
-        state_fips + sldu
-      when "LL"
-        state_fips + sldl
-      when /^C\d/
-        state_fips + cd
-      when "21", "25", "37", "47", "57"
-        state_fips + place_fips
-      when "43", "44"
-        if cousub_fips.empty?
-          state_fips + place_fips
-        else
-          state_fips + county_fips + cousub_fips
-        end
-      else
-        state_fips + (county_fips+csa+cd+sldu+sldl)
-    end
-    geoHash[logrecno] = { :name => name, :geo_key => geo_key }
+    geoHash[logrecno] = { :name => name, :geo_key => calculate_geo_key(line) }
   }
   geoHash
 end
@@ -128,11 +140,13 @@ data_dir = File.join(inputdir, "ripd", opts['ftp']['data_dir'])
 tsv_filename = File.join(outputdir, opts["data_assets"][0]["location"])
 FileUtils.mkdir_p(File.dirname(tsv_filename))
 File.open(tsv_filename, "w") { |tsvfile|
-  dp_dirs = Dir[File.join(data_dir, "**")]
+  dp_dirs = Dir[File.join(data_dir, "**")].sort
   dp_dirs.each { |dp_dir|
     puts "Processing #{dp_dir} ..."
     process_dp_dir(tsvfile, dp_dir)
+    $xref_log.flush
   }
 }
 
+$xref_log.close
 puts "\n\nMain script is done"
