@@ -5,8 +5,8 @@ HACKBOX_DIR = File.dirname(__FILE__)
 
 def ftp
   return @ftp_connection if @ftp_connection
-  @ftp_connection ||= Net::FTP.new(Settings['ftp']['url'])
-  @ftp_connection.login(Settings['ftp']['login'],Settings['ftp']['login'])
+  @ftp_connection ||= Net::FTP.new(WorkingConfig['ftp']['url'])
+  @ftp_connection.login(WorkingConfig['ftp']['login'],WorkingConfig['ftp']['login'])
   @ftp_connection.passive = true
   @ftp_connection
 end
@@ -50,7 +50,7 @@ def unzip_files(path)
 end
 
 task :get_dem_data do
-  dirlist = ftp.nlst(Settings['ftp']['data_dir'])
+  dirlist = ftp.nlst(WorkingConfig['ftp']['data_dir'])
   dirlist.reject! { |e| e.index(".") || e =~ /\/national/i }
   dirlist.each { |remote_path|
     puts "Grabbing data for #{remote_path} ..."
@@ -60,12 +60,12 @@ task :get_dem_data do
 end
 
 task :unzip_dem_data => :get_dem_data do
-  unzip_files(File.join(HackBoxen::Paths.ripd_dir, Settings['ftp']['data_dir']))
+  unzip_files(File.join(HackBoxen::Paths.ripd_dir, WorkingConfig['ftp']['data_dir']))
 end
 
 task :get_shapefiles do
   ripd = HackBoxen::Paths.ripd_dir
-  shp_dir = Settings['ftp']['shp_dir']
+  shp_dir = WorkingConfig['ftp']['shp_dir']
   [ "COUNTY/2010", "STATE/2010" ].each { |subdir|
     remote_path = "#{shp_dir}/#{subdir}"
     local_path = File.join(HackBoxen::Paths.ripd_dir, remote_path)
@@ -74,7 +74,7 @@ task :get_shapefiles do
 end
 
 task :unzip_shapefiles => :get_shapefiles do
-  unzip_files(File.join(HackBoxen::Paths.ripd_dir, Settings['ftp']['shp_dir']))
+  unzip_files(File.join(HackBoxen::Paths.ripd_dir, WorkingConfig['ftp']['shp_dir']))
 end
 
 task :process_shapefiles => :unzip_shapefiles do
