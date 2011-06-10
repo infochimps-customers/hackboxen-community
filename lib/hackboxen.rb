@@ -7,7 +7,8 @@ require 'swineherd'
 
 HACKBOX_LIB_DIR = File.join(File.dirname(__FILE__), 'hackboxen')
 
-Settings.use :commandline, :config_file
-# Gives you all the basic hackboxen tasks namespaced under 'hb'
+WorkingConfig = Configliere::Param.new
+WorkingConfig.use :commandline, :config_file
+
 require 'hackboxen/utils'
 require 'hackboxen/tasks'

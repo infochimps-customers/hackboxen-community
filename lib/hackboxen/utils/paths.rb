@@ -9,10 +9,10 @@ module HackBoxen
     # Returns path to the root of all **this** hackbox's output
     #
     def self.hackbox_dataroot
-      raise "Your hackbox config appears to be missing a [dataroot] variable" unless Settings['dataroot']
-      raise "Your hackbox appears to be missing a [namespace]" unless Settings['namespace']
-      raise "Your hackbox appears to be missing a [protocol]" unless Settings['protocol']
-      hackbox_dataroot = File.join(Settings['dataroot'], Settings['namespace'].gsub('.', '/'), Settings['protocol'])
+      raise "Your hackbox config appears to be missing a [dataroot] variable" unless WorkingConfig['dataroot']
+      raise "Your hackbox appears to be missing a [namespace]" unless WorkingConfig['namespace']
+      raise "Your hackbox appears to be missing a [protocol]" unless WorkingConfig['protocol']
+      hackbox_dataroot = File.join(WorkingConfig['dataroot'], WorkingConfig['namespace'].gsub('.', '/'), WorkingConfig['protocol'])
       hackbox_dataroot
     end
 
@@ -20,8 +20,8 @@ module HackBoxen
     # Use local filesystem to make hackbox_dirs (they're where code and config goes) and the given filesystem scheme to create other output dirs.
     #
     def self.maybe_make_required_paths
-      raise "Your hackbox config appears to be missing a [filesystem_scheme] eg. hdfs or file." unless Settings['filesystem_scheme']
-      otherfs = Swineherd::FileSystem.get(Settings['filesystem_scheme'].to_sym)
+      raise "Your hackbox config appears to be missing a [filesystem_scheme] eg. hdfs or file." unless WorkingConfig['filesystem_scheme']
+      otherfs = Swineherd::FileSystem.get(WorkingConfig['filesystem_scheme'].to_sym)
       localfs = Swineherd::FileSystem.get(:file)
       hackbox_dirs.each{|d| localfs.mkpath(d) unless localfs.exists? d}
       (input_dirs + output_dirs).each{|d| otherfs.mkpath(d) unless otherfs.exists? d}
@@ -71,7 +71,7 @@ module HackBoxen
     def self.working_config_dir
       File.join(fixd_dir, "env")
     end
-    
+
     #
     # Returns path to full working config
     #
@@ -95,7 +95,7 @@ module HackBoxen
 
     #
     # Returns path to place for log output
-    # 
+    #
     def self.log_dir
       File.join(hackbox_dataroot, "log")
     end
@@ -106,12 +106,12 @@ module HackBoxen
     def self.tmp_dir
       File.join(hackbox_dataroot, "tmp")
     end
-    
+
     #
     # Returns an array of the hackbox's own directories
     #
     def self.hackbox_dirs
-      [File.join(HACKBOX_DIR, "engine"), File.join(HACKBOX_DIR, "config")] 
+      [File.join(HACKBOX_DIR, "engine"), File.join(HACKBOX_DIR, "config")]
     end
 
     #
@@ -120,14 +120,14 @@ module HackBoxen
     def self.hackbox_engine
       File.join(HACKBOX_DIR, "engine")
     end
-    
+
     #
     # Returns the path to the hackbox executable
     #
     def self.hackbox_main
       File.join(self.hackbox_engine, "main")
     end
-    
+
   end
-  
+
 end

@@ -15,7 +15,7 @@ module HackBoxen
         begin
           if filename.downcase.end_with? ".yaml"
             contents = fs.open(File.join(path,filename)).read
-            Settings.deep_merge!(YAML.load(contents))
+            WorkingConfig.deep_merge!(YAML.load(contents))
             fs.close
           end
         rescue
@@ -34,8 +34,8 @@ module HackBoxen
     # This makes sure the "requires" are met by the "provides"
     # in the hackbox config. Failures are stored in <tt>fails</tt>.
     def self.failed_requirements
-      p = Settings['provides']
-      r = Settings['requires']
+      p = WorkingConfig['provides']
+      r = WorkingConfig['requires']
       fails = []
       if r != nil
         if not r.class == Hash  or not p.class == Hash

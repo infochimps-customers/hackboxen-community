@@ -1,6 +1,8 @@
 require 'erubis'
+
 module HackBoxen
   class Template
+
     attr_accessor :source_template, :output_path, :attributes
 
     def initialize source_template, output_path, attributes

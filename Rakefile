@@ -3,12 +3,15 @@ require 'yaml'
 require 'rake'
 require 'configliere'
 require 'ohai'
-require 'lib/hackboxen/template' # For creating hackbox scaffolding
+require './lib/hackboxen/template' # For creating hackbox scaffolding
 
 Settings.use :commandline
-Settings.define :dataroot,  :default  => '/data/hb', :description => "Global hackbox dataroot"
-Settings.define :namespace, :default  => 'test',     :description => "Hackbox namespace (eg. web/analytics)"
+Settings.define :dataroot,  :default  => '/data/hb', :description => "Global directory for hackbox output"
+Settings.define :coderoot,  :default  => 'hb',       :description => "Global directory for hackbox code"
+Settings.define :namespace, :default  => 'test',     :description => "Hackbox namespace (eg. web.analytics)"
 Settings.define :protocol,  :default  => 'foobar',   :description => "Hackbox protocol (eg. digital_element)"
+Settings.define :targets,   :default  => 'catalog',  :description => "Targets for the Hackbox to be published to"
+Settings.define :fs,        :default  => 'file',     :description => "The filesystem scheme used for this Hackbox"
 Settings.resolve!
 
 #
@@ -61,14 +64,20 @@ engine      = File.join(protocol, "engine")
 config      = File.join(protocol, "config")
 
 # define idempotent directory tasks
-[namespace, protocol, engine, config].each{|dir| directory dir}
+[ namespace, protocol, engine, config ].each { |dir| directory dir }
 
 # files
 rakefile    = File.join(protocol, "Rakefile")
 main        = File.join(engine, "main")
 config_yml  = File.join(config, "config.yaml")
+endpoint    = File.join(engine, "#{Settings.protocol}_endpoint.rb")
+templates   = File.join("lib/hackboxen/template")
 
-templates = File.join("lib/hackboxen/template")
+# Create a basic endpoint if apeyeye was specified as a target
+file endpoint, [:config] => engine do |t, args|
+  HackBoxen::Template.new(File.join(templates, "endpoint.rb.erb"), endpoint, args[:config]).substitute! unless File.exists?(endpoint)
+end
+
 # Create hb Rakefile if it doesn't already exist
 file rakefile => protocol do
   HackBoxen::Template.new(File.join(templates, "Rakefile.erb"), rakefile, {}).substitute! unless File.exist?(rakefile)
@@ -82,15 +91,21 @@ file main => engine do
   end
 end
 
-# Create minimal config file if it doesn't already exist
+# Create a basic config file if it doesn't already exist
 file config_yml => config do
   # FIXME: Not everyone will have a local filesystem
-  min_config = {'namespace' => Settings.namespace, 'protocol' => Settings.protocol, 'filesystem_scheme' => 'file'}
-  File.open(config_yml, 'w'){|f| f.puts(min_config.to_yaml)} unless File.exist?(config_yml)
+  targets = Settings.targets.split(',')
+  basic_config = {
+    'namespace' => Settings.namespace,
+    'protocol'  => Settings.protocol,
+    'fs'        => Settings.fs,
+    'targets'   => targets
+  }
+  HackBoxen::Template.new(File.join(templates, "config.yaml.erb"), config_yml, basic_config).substitute! unless File.exists?(config_yml)
+  Rake::Task[endpoint].invoke(basic_config) if targets.include? 'apeyeye'
 end
-
 
 desc "Setup hackbox.yaml in ~/.hackbox/hackbox.yaml"
 task :install  => [hackbox_config]
-desc "Scaffold in the required hackbox structure for a new hackbox along with stubbed out files. Requires namespace and protocol. \nUSAGE: rake scaffold -- --namespace=[namespace] --protocol=[protocol]"
+desc "Scaffold in the required hackbox structure for a new hackbox along with stubbed out files"
 task :scaffold => [rakefile, main, config_yml]

@@ -1,6 +1,6 @@
 module HackBoxen
-  autoload :Config, HACKBOX_LIB_DIR+'/utils/config'
-  autoload :ConfigValidator, HACKBOX_LIB_DIR+'/utils/config'
-  autoload :Paths,  HACKBOX_LIB_DIR+'/utils/paths'
-  autoload :LocalFileSystem,  HACKBOX_LIB_DIR+'/utils/filesystems'
+  autoload :Config,          'hackboxen/utils/config'
+  autoload :ConfigValidator, 'hackboxen/utils/config'
+  autoload :Paths,           'hackboxen/utils/paths'
+  autoload :LocalFileSystem, 'hackboxen/utils/filesystems'
 end
