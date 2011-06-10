@@ -10,7 +10,7 @@ module Sports
         BASEBALLPENNANT_TABLE = 'pennant_team_standings'
 
         handles('team_standings') do |params, app, responder|
-          conditions = {
+          conditions   = {
             'team_name'   => params[:team_name],
             'record_year' => params[:record_year]
           }
