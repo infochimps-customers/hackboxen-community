@@ -97,5 +97,5 @@ end
 #
 task :get_data => [:unzip_dem_data, :process_shapefiles]
 
-task :default => ['hb:create_working_config', :get_data, 'hb:init']
+task :default => ['hb:create_working_config', 'hb:icss', :get_data, 'hb:init']
 
