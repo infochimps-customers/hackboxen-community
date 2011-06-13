@@ -118,7 +118,7 @@ end
 
 def generate_geojson(tsvfile, demoHash, geoHash)
   cross_reference(demoHash, geoHash) { |geo_key,name,feature_json|
-    tsvfile.print "demo.census\t#{geo_key}\t#{name}\t"
+    tsvfile.print "demo.census\t"
     tsvfile.print feature_json
     tsvfile.puts
   }

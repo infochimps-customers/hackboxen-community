@@ -1,4 +1,4 @@
----
+1;2c---
 namespace: government.public.census
 protocol: demographics
 filesystem_scheme: file
@@ -11,6 +11,20 @@ ftp:
   login: anonymous
   data_dir: "census_2010/03-Demographic_Profile"
   shp_dir: "geo/tiger/TIGER2010"
+
+messages:
+  places:
+    request:
+    - name: demographics_request
+      type: demographics_request
+    response: geojson_feature_collection
+    doc: Returns sorted pages of 'entities' within a geo location specified by a (lng,lat) pair and a resolution.
+    samples:
+    - response:
+      request:
+      - lat: 30.2669444
+        lng: -97.7427778
+        zoom: 5        
 
 data_assets:
 - name: census_data_asset
@@ -41,6 +55,8 @@ targets:
     tags:
     - census
     - demographics
+    messages:
+    - places
   apeyeye:
   - code_assets:
     - demographics_endpoint
@@ -51,567 +67,567 @@ types:
   type: record
   doc: Description of the census_data_record type
   fields:
-  - name: "dpsf0010001"
+  - name: dpsf0010001
     doc: "Population total years"
-    type: integer
-  - name: "dpsf0010002"
+    type: int
+  - name: dpsf0010002
     doc: "Population under 5 years"
-    type: integer
-  - name: "dpsf0010003"
+    type: int
+  - name: dpsf0010003
     doc: "Population 5 to 9 years"
-    type: integer
-  - name: "dpsf0010004"
+    type: int
+  - name: dpsf0010004
     doc: "Population 10 to 14 years"
-    type: integer
-  - name: "dpsf0010005"
+    type: int
+  - name: dpsf0010005
     doc: "Population 15 to 19 years"
-    type: integer
-  - name: "dpsf0010006"
+    type: int
+  - name: dpsf0010006
     doc: "Population 20 to 24 years"
-    type: integer
-  - name: "dpsf0010007"
+    type: int
+  - name: dpsf0010007
     doc: "Population 25 to 29 years"
-    type: integer
-  - name: "dpsf0010008"
+    type: int
+  - name: dpsf0010008
     doc: "Population 30 to 34 years"
-    type: integer
-  - name: "dpsf0010009"
+    type: int
+  - name: dpsf0010009
     doc: "Population 35 to 39 years"
-    type: integer
-  - name: "dpsf0010010"
+    type: int
+  - name: dpsf0010010
     doc: "Population 40 to 44 years"
-    type: integer
-  - name: "dpsf0010011"
+    type: int
+  - name: dpsf0010011
     doc: "Population 45 to 49 years"
-    type: integer
-  - name: "dpsf0010012"
+    type: int
+  - name: dpsf0010012
     doc: "Population 50 to 54 years"
-    type: integer
-  - name: "dpsf0010013"
+    type: int
+  - name: dpsf0010013
     doc: "Population 55 to 59 years"
-    type: integer
-  - name: "dpsf0010014"
+    type: int
+  - name: dpsf0010014
     doc: "Population 60 to 64 years"
-    type: integer
-  - name: "dpsf0010015"
+    type: int
+  - name: dpsf0010015
     doc: "Population 65 to 69 years"
-    type: integer
-  - name: "dpsf0010016"
+    type: int
+  - name: dpsf0010016
     doc: "Population 70 to 74 years"
-    type: integer
-  - name: "dpsf0010017"
+    type: int
+  - name: dpsf0010017
     doc: "Population 75 to 79 years"
-    type: integer
-  - name: "dpsf0010018"
+    type: int
+  - name: dpsf0010018
     doc: "Population 80 to 84 years"
-    type: integer
-  - name: "dpsf0010019"
+    type: int
+  - name: dpsf0010019
     doc: "Population over 85 years"
-    type: integer
-  - name: "dpsf0010020"
+    type: int
+  - name: dpsf0010020
     doc: "Male Population total years"
-    type: integer
-  - name: "dpsf0010021"
+    type: int
+  - name: dpsf0010021
     doc: "Male Population under 5 years"
-    type: integer
-  - name: "dpsf0010022"
+    type: int
+  - name: dpsf0010022
     doc: "Male Population 5 to 9 years"
-    type: integer
-  - name: "dpsf0010023"
+    type: int
+  - name: dpsf0010023
     doc: "Male Population 10 to 14 years"
-    type: integer
-  - name: "dpsf0010024"
+    type: int
+  - name: dpsf0010024
     doc: "Male Population 15 to 19 years"
-    type: integer
-  - name: "dpsf0010025"
+    type: int
+  - name: dpsf0010025
     doc: "Male Population 20 to 24 years"
-    type: integer
-  - name: "dpsf0010026"
+    type: int
+  - name: dpsf0010026
     doc: "Male Population 25 to 29 years"
-    type: integer
-  - name: "dpsf0010027"
+    type: int
+  - name: dpsf0010027
     doc: "Male Population 30 to 34 years"
-    type: integer
-  - name: "dpsf0010028"
+    type: int
+  - name: dpsf0010028
     doc: "Male Population 35 to 39 years"
-    type: integer
-  - name: "dpsf0010029"
+    type: int
+  - name: dpsf0010029
     doc: "Male Population 40 to 44 years"
-    type: integer
-  - name: "dpsf0010030"
+    type: int
+  - name: dpsf0010030
     doc: "Male Population 45 to 49 years"
-    type: integer
-  - name: "dpsf0010031"
+    type: int
+  - name: dpsf0010031
     doc: "Male Population 50 to 54 years"
-    type: integer
-  - name: "dpsf0010032"
+    type: int
+  - name: dpsf0010032
     doc: "Male Population 55 to 59 years"
-    type: integer
-  - name: "dpsf0010033"
+    type: int
+  - name: dpsf0010033
     doc: "Male Population 60 to 64 years"
-    type: integer
-  - name: "dpsf0010034"
+    type: int
+  - name: dpsf0010034
     doc: "Male Population 65 to 69 years"
-    type: integer
-  - name: "dpsf0010035"
+    type: int
+  - name: dpsf0010035
     doc: "Male Population 70 to 74 years"
-    type: integer
-  - name: "dpsf0010036"
+    type: int
+  - name: dpsf0010036
     doc: "Male Population 75 to 79 years"
-    type: integer
-  - name: "dpsf0010037"
+    type: int
+  - name: dpsf0010037
     doc: "Male Population 80 to 84 years"
-    type: integer
-  - name: "dpsf0010038"
+    type: int
+  - name: dpsf0010038
     doc: "Male Population over 85 years"
-    type: integer
-  - name: "dpsf0010039"
+    type: int
+  - name: dpsf0010039
     doc: "Female Population total years"
-    type: integer
-  - name: "dpsf0010040"
+    type: int
+  - name: dpsf0010040
     doc: "Female Population under 5 years"
-    type: integer
-  - name: "dpsf0010041"
+    type: int
+  - name: dpsf0010041
     doc: "Female Population 5 to 9 years"
-    type: integer
-  - name: "dpsf0010042"
+    type: int
+  - name: dpsf0010042
     doc: "Female Population 10 to 14 years"
-    type: integer
-  - name: "dpsf0010043"
+    type: int
+  - name: dpsf0010043
     doc: "Female Population 15 to 19 years"
-    type: integer
-  - name: "dpsf0010044"
+    type: int
+  - name: dpsf0010044
     doc: "Female Population 20 to 24 years"
-    type: integer
-  - name: "dpsf0010045"
+    type: int
+  - name: dpsf0010045
     doc: "Female Population 25 to 29 years"
-    type: integer
-  - name: "dpsf0010046"
+    type: int
+  - name: dpsf0010046
     doc: "Female Population 30 to 34 years"
-    type: integer
-  - name: "dpsf0010047"
+    type: int
+  - name: dpsf0010047
     doc: "Female Population 35 to 39 years"
-    type: integer
-  - name: "dpsf0010048"
+    type: int
+  - name: dpsf0010048
     doc: "Female Population 40 to 44 years"
-    type: integer
-  - name: "dpsf0010049"
+    type: int
+  - name: dpsf0010049
     doc: "Female Population 45 to 49 years"
-    type: integer
-  - name: "dpsf0010050"
+    type: int
+  - name: dpsf0010050
     doc: "Female Population 50 to 54 years"
-    type: integer
-  - name: "dpsf0010051"
+    type: int
+  - name: dpsf0010051
     doc: "Female Population 55 to 59 years"
-    type: integer
-  - name: "dpsf0010052"
+    type: int
+  - name: dpsf0010052
     doc: "Female Population 60 to 64 years"
-    type: integer
-  - name: "dpsf0010053"
+    type: int
+  - name: dpsf0010053
     doc: "Female Population 65 to 69 years"
-    type: integer
-  - name: "dpsf0010054"
+    type: int
+  - name: dpsf0010054
     doc: "Female Population 70 to 74 years"
-    type: integer
-  - name: "dpsf0010055"
+    type: int
+  - name: dpsf0010055
     doc: "Female Population 75 to 79 years"
-    type: integer
-  - name: "dpsf0010056"
+    type: int
+  - name: dpsf0010056
     doc: "Female Population 80 to 84 years"
-    type: integer
-  - name: "dpsf0010057"
+    type: int
+  - name: dpsf0010057
     doc: "Female Population over 85 years"
-    type: integer
-  - name: "dpsf0020001"
+    type: int
+  - name: dpsf0020001
     doc: "Median age of population"
-    type: integer
-  - name: "dpsf0020002"
+    type: int
+  - name: dpsf0020002
     doc: "Median age of male population"
-    type: integer
-  - name: "dpsf0020003"
+    type: int
+  - name: dpsf0020003
     doc: "Median age of female population"
-    type: integer
-  - name: "dpsf0030001"
+    type: int
+  - name: dpsf0030001
     doc: "Population 16 years and over"
-    type: integer
-  - name: "dpsf0030002"
+    type: int
+  - name: dpsf0030002
     doc: "Male Population 16 years and over"
-    type: integer
-  - name: "dpsf0030003"
+    type: int
+  - name: dpsf0030003
     doc: "Female Population 16 years and over"
-    type: integer
-  - name: "dpsf0040001"
+    type: int
+  - name: dpsf0040001
     doc: "Population 18 years and over"
-    type: integer
-  - name: "dpsf0040002"
+    type: int
+  - name: dpsf0040002
     doc: "Male Population 18 years and over"
-    type: integer
-  - name: "dpsf0040003"
+    type: int
+  - name: dpsf0040003
     doc: "Female Population 18 years and over"
-    type: integer
-  - name: "dpsf0050001"
+    type: int
+  - name: dpsf0050001
     doc: "Population 21 years and over"
-    type: integer
-  - name: "dpsf0050002"
+    type: int
+  - name: dpsf0050002
     doc: "Male Population 21 years and over"
-    type: integer
-  - name: "dpsf0050003"
+    type: int
+  - name: dpsf0050003
     doc: "Female Population 21 years and over"
-    type: integer
-  - name: "dpsf0060001"
+    type: int
+  - name: dpsf0060001
     doc: "Population 62 years and over"
-    type: integer
-  - name: "dpsf0060002"
+    type: int
+  - name: dpsf0060002
     doc: "Male Population 62 years and over"
-    type: integer
-  - name: "dpsf0060003"
+    type: int
+  - name: dpsf0060003
     doc: "Female Population 62 years and over"
-    type: integer
-  - name: "dpsf0070001"
+    type: int
+  - name: dpsf0070001
     doc: "Population 65 years and over"
-    type: integer
-  - name: "dpsf0070002"
+    type: int
+  - name: dpsf0070002
     doc: "Male Population 65 years and over"
-    type: integer
-  - name: "dpsf0070003"
+    type: int
+  - name: dpsf0070003
     doc: "Female Population 65 years and over"
-    type: integer
-  - name: "dpsf0080001"
+    type: int
+  - name: dpsf0080001
     doc: "Total population"
-    type: integer
-  - name: "dpsf0080002"
+    type: int
+  - name: dpsf0080002
     doc: "Population of one race"
-    type: integer
-  - name: "dpsf0080003"
+    type: int
+  - name: dpsf0080003
     doc: "Population of one race, White"
-    type: integer
-  - name: "dpsf0080004"
+    type: int
+  - name: dpsf0080004
     doc: "Population of one race, Black or African American"
-    type: integer
-  - name: "dpsf0080005"
+    type: int
+  - name: dpsf0080005
     doc: "Population of one race, American Indian and Alaska Native"
-    type: integer
-  - name: "dpsf0080006"
+    type: int
+  - name: dpsf0080006
     doc: "Population of one race, Asian"
-    type: integer
-  - name: "dpsf0080007"
+    type: int
+  - name: dpsf0080007
     doc: "Population of one race, Asian Indian"
-    type: integer
-  - name: "dpsf0080008"
+    type: int
+  - name: dpsf0080008
     doc: "Population of one race, Chinese"
-    type: integer
-  - name: "dpsf0080009"
+    type: int
+  - name: dpsf0080009
     doc: "Population of one race, Filipino"
-    type: integer
-  - name: "dpsf0080010"
+    type: int
+  - name: dpsf0080010
     doc: "Population of one race, Japanese"
-    type: integer
-  - name: "dpsf0080011"
+    type: int
+  - name: dpsf0080011
     doc: "Population of one race, Korean"
-    type: integer
-  - name: "dpsf0080012"
+    type: int
+  - name: dpsf0080012
     doc: "Population of one race, Vietnamese"
-    type: integer
-  - name: "dpsf0080013"
+    type: int
+  - name: dpsf0080013
     doc: "Population of one race, Other Asian"
-    type: integer
-  - name: "dpsf0080014"
+    type: int
+  - name: dpsf0080014
     doc: "Population of one race, Native Hawaiian and Other Pacific Islander"
-    type: integer
-  - name: "dpsf0080015"
+    type: int
+  - name: dpsf0080015
     doc: "Population of one race, Native Hawaiian"
-    type: integer
-  - name: "dpsf0080016"
+    type: int
+  - name: dpsf0080016
     doc: "Population of one race, Guamanian or Chamorro"
-    type: integer
-  - name: "dpsf0080017"
+    type: int
+  - name: dpsf0080017
     doc: "Population of one race, Samoan"
-    type: integer
-  - name: "dpsf0080018"
+    type: int
+  - name: dpsf0080018
     doc: "Population of one race, Other Pacific Islander"
-    type: integer
-  - name: "dpsf0080019"
+    type: int
+  - name: dpsf0080019
     doc: "Population of one race, Other"
-    type: integer
-  - name: "dpsf0080020"
+    type: int
+  - name: dpsf0080020
     doc: "Population of Two or More Races"
-    type: integer
-  - name: "dpsf0080021"
+    type: int
+  - name: dpsf0080021
     doc: "Population of Two or More Races, White; American Indian and Alaska Native"
-    type: integer
-  - name: "dpsf0080022"
+    type: int
+  - name: dpsf0080022
     doc: "Population of Two or More Races, White; Asian"
-    type: integer
-  - name: "dpsf0080023"
+    type: int
+  - name: dpsf0080023
     doc: "Population of Two or More Races, White; Black or African American"
-    type: integer
-  - name: "dpsf0080024"
+    type: int
+  - name: dpsf0080024
     doc: "Population of Two or More Races, White; Some Other Race"
-    type: integer
-  - name: "dpsf0090001"
+    type: int
+  - name: dpsf0090001
     doc: "White alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0090002"
+    type: int
+  - name: dpsf0090002
     doc: "Black or African American alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0090003"
+    type: int
+  - name: dpsf0090003
     doc: "American Indian and Alaska Native alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0090004"
+    type: int
+  - name: dpsf0090004
     doc: "Asian alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0090005"
+    type: int
+  - name: dpsf0090005
     doc: "Native Hawaiian and Other Pacific Islander alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0090006"
+    type: int
+  - name: dpsf0090006
     doc: "Some Other Race alone or in combination with one or more other races"
-    type: integer
-  - name: "dpsf0100001"
+    type: int
+  - name: dpsf0100001
     doc: "Total population"
-    type: integer
-  - name: "dpsf0100002"
+    type: int
+  - name: dpsf0100002
     doc: "Hispanic or Latino"
-    type: integer
-  - name: "dpsf0100003"
+    type: int
+  - name: dpsf0100003
     doc: "Hispanic or Latino, Mexican"
-    type: integer
-  - name: "dpsf0100004"
+    type: int
+  - name: dpsf0100004
     doc: "Hispanic or Latino, Puerto Rican"
-    type: integer
-  - name: "dpsf0100005"
+    type: int
+  - name: dpsf0100005
     doc: "Hispanic or Latino, Cuban"
-    type: integer
-  - name: "dpsf0100006"
+    type: int
+  - name: dpsf0100006
     doc: "Hispanic or Latino, Other"
-    type: integer
-  - name: "dpsf0100007"
+    type: int
+  - name: dpsf0100007
     doc: "Not Hispanic or Latino"
-    type: integer
-  - name: "dpsf0110001"
+    type: int
+  - name: dpsf0110001
     doc: "Total population"
-    type: integer
-  - name: "dpsf0110002"
+    type: int
+  - name: dpsf0110002
     doc: "Hispanic or Latino"
-    type: integer
-  - name: "dpsf0110003"
+    type: int
+  - name: dpsf0110003
     doc: "Hispanic or Latino, White Alone"
-    type: integer
-  - name: "dpsf0110004"
+    type: int
+  - name: dpsf0110004
     doc: "Hispanic or Latino, Black or African American"
-    type: integer
-  - name: "dpsf0110005"
+    type: int
+  - name: dpsf0110005
     doc: "Hispanic or Latino, American Indian and Alaska Native alone"
-    type: integer
-  - name: "dpsf0110006"
+    type: int
+  - name: dpsf0110006
     doc: "Hispanic or Latino, Asian alone"
-    type: integer
-  - name: "dpsf0110007"
+    type: int
+  - name: dpsf0110007
     doc: "Hispanic or Latino, Native Hawaiian and Other Pacific Islander alone"
-    type: integer
-  - name: "dpsf0110008"
+    type: int
+  - name: dpsf0110008
     doc: "Hispanic or Latino, Some Other Race alone"
-    type: integer
-  - name: "dpsf0110009"
+    type: int
+  - name: dpsf0110009
     doc: "Hispanic or Latino, Two or More Races"
-    type: integer
-  - name: "dpsf0110010"
+    type: int
+  - name: dpsf0110010
     doc: "Not Hispanic or Latino"
-    type: integer
-  - name: "dpsf0110011"
+    type: int
+  - name: dpsf0110011
     doc: "Not Hispanic or Latino, White Alone"
-    type: integer
-  - name: "dpsf0110012"
+    type: int
+  - name: dpsf0110012
     doc: "Not Hispanic or Latino, Black or African American"
-    type: integer
-  - name: "dpsf0110013"
+    type: int
+  - name: dpsf0110013
     doc: "Not Hispanic or Latino, American Indian and Alaska Native alone"
-    type: integer
-  - name: "dpsf0110014"
+    type: int
+  - name: dpsf0110014
     doc: "Not Hispanic or Latino, Asian alone"
-    type: integer
-  - name: "dpsf0110015"
+    type: int
+  - name: dpsf0110015
     doc: "Not Hispanic or Latino, Native Hawaiian and Other Pacific Islander alone"
-    type: integer
-  - name: "dpsf0110016"
+    type: int
+  - name: dpsf0110016
     doc: "Not Hispanic or Latino, Some Other Race alone"
-    type: integer
-  - name: "dpsf0110017"
+    type: int
+  - name: dpsf0110017
     doc: "Not Hispanic or Latino, Two or More Races"
-    type: integer
-  - name: "dpsf0120001"
+    type: int
+  - name: dpsf0120001
     doc: "Total population"
-    type: integer
-  - name: "dpsf0120002"
+    type: int
+  - name: dpsf0120002
     doc: "Population in households"
-    type: integer
-  - name: "dpsf0120003"
+    type: int
+  - name: dpsf0120003
     doc: "Householder"
-    type: integer
-  - name: "dpsf0120004"
+    type: int
+  - name: dpsf0120004
     doc: "Spouse "
-    type: integer
-  - name: "dpsf0120005"
+    type: int
+  - name: dpsf0120005
     doc: "Child"
-    type: integer
-  - name: "dpsf0120006"
+    type: int
+  - name: dpsf0120006
     doc: "Own child under 18 years"
-    type: integer
-  - name: "dpsf0120007"
+    type: int
+  - name: dpsf0120007
     doc: "Other relatives"
-    type: integer
-  - name: "dpsf0120008"
+    type: int
+  - name: dpsf0120008
     doc: "Other relatives, under 18 years"
-    type: integer
-  - name: "dpsf0120009"
+    type: int
+  - name: dpsf0120009
     doc: "Other relatives, 65 years and over"
-    type: integer
-  - name: "dpsf0120010"
+    type: int
+  - name: dpsf0120010
     doc: "Nonrelatives"
-    type: integer
-  - name: "dpsf0120011"
+    type: int
+  - name: dpsf0120011
     doc: "Nonrelatives, under 18 years"
-    type: integer
-  - name: "dpsf0120012"
+    type: int
+  - name: dpsf0120012
     doc: "Nonrelatives, 65 years and over"
-    type: integer
-  - name: "dpsf0120013"
+    type: int
+  - name: dpsf0120013
     doc: "Nonrelatives, unmarried partner"
-    type: integer
-  - name: "dpsf0120014"
+    type: int
+  - name: dpsf0120014
     doc: "In group quarters"
-    type: integer
-  - name: "dpsf0120015"
+    type: int
+  - name: dpsf0120015
     doc: "In group quarters, Institutionalized population"
-    type: integer
-  - name: "dpsf0120016"
+    type: int
+  - name: dpsf0120016
     doc: "In group quarters, Male Institutionalized population"
-    type: integer
-  - name: "dpsf0120017"
+    type: int
+  - name: dpsf0120017
     doc: "In group quarters, Female Institutionalized population"
-    type: integer
-  - name: "dpsf0120018"
+    type: int
+  - name: dpsf0120018
     doc: "In group quarters"
-    type: integer
-  - name: "dpsf0120019"
+    type: int
+  - name: dpsf0120019
     doc: "In group quarters, Noninstitutionalized population"
-    type: integer
-  - name: "dpsf0120020"
+    type: int
+  - name: dpsf0120020
     doc: "In group quarters, Male Noninstitutionalized population"
-    type: integer
-  - name: "dpsf0120021"
+    type: int
+  - name: dpsf0120021
     doc: "In group quarters, Female Noninstitutionalized population"
-    type: integer
-  - name: "dpsf0130001"
+    type: int
+  - name: dpsf0130001
     doc: "Total households"
-    type: integer
-  - name: "dpsf0130002"
+    type: int
+  - name: dpsf0130002
     doc: "Family households"
-    type: integer
-  - name: "dpsf0130003"
+    type: int
+  - name: dpsf0130003
     doc: "Family households, with own children under 18"
-    type: integer
-  - name: "dpsf0130004"
+    type: int
+  - name: dpsf0130004
     doc: "Family households, Husband-Wife"
-    type: integer
-  - name: "dpsf0130005"
+    type: int
+  - name: dpsf0130005
     doc: "Family households, Husband-Wife, with own children under 18"
-    type: integer
-  - name: "dpsf0130006"
+    type: int
+  - name: dpsf0130006
     doc: "Family households, Male householder"
-    type: integer
-  - name: "dpsf0130007"
+    type: int
+  - name: dpsf0130007
     doc: "Family households, Male householder, with own children under 18"
-    type: integer
-  - name: "dpsf0130008"
+    type: int
+  - name: dpsf0130008
     doc: "Family households, Female householder"
-    type: integer
-  - name: "dpsf0130009"
+    type: int
+  - name: dpsf0130009
     doc: "Family households, Female householder, with own children under 18"
-    type: integer
-  - name: "dpsf0130010"
+    type: int
+  - name: dpsf0130010
     doc: "Non-family households"
-    type: integer
-  - name: "dpsf0130011"
+    type: int
+  - name: dpsf0130011
     doc: "Householder living alone"
-    type: integer
-  - name: "dpsf0130012"
+    type: int
+  - name: dpsf0130012
     doc: "Male householder living alone"
-    type: integer
-  - name: "dpsf0130013"
+    type: int
+  - name: dpsf0130013
     doc: "Male householder living alone, 65 years or older"
-    type: integer
-  - name: "dpsf0130014"
+    type: int
+  - name: dpsf0130014
     doc: "Female householder living alone"
-    type: integer
-  - name: "dpsf0130015"
+    type: int
+  - name: dpsf0130015
     doc: "Female householder living alone, 65 years or older"
-    type: integer
-  - name: "dpsf0140001"
+    type: int
+  - name: dpsf0140001
     doc: "households with individuals under 18 years"
-    type: integer
-  - name: "dpsf0150001"
+    type: int
+  - name: dpsf0150001
     doc: "households with individuals 65 years and over"
-    type: integer
-  - name: "dpsf0160001"
+    type: int
+  - name: dpsf0160001
     doc: "average household size"
-    type: integer
-  - name: "dpsf0170001"
+    type: int
+  - name: dpsf0170001
     doc: "average family size"
-    type: integer
-  - name: "dpsf0180001"
+    type: int
+  - name: dpsf0180001
     doc: "Total housing units"
-    type: integer
-  - name: "dpsf0180002"
+    type: int
+  - name: dpsf0180002
     doc: "Occupied housing units"
-    type: integer
-  - name: "dpsf0180003"
+    type: int
+  - name: dpsf0180003
     doc: "Vacant housing units"
-    type: integer
-  - name: "dpsf0180004"
+    type: int
+  - name: dpsf0180004
     doc: "Vacant housing units, for rent"
-    type: integer
-  - name: "dpsf0180005"
+    type: int
+  - name: dpsf0180005
     doc: "Vacant housing units, Rented, not occupied"
-    type: integer
-  - name: "dpsf0180006"
+    type: int
+  - name: dpsf0180006
     doc: "Vacant housing units, For sale only"
-    type: integer
-  - name: "dpsf0180007"
+    type: int
+  - name: dpsf0180007
     doc: "Vacant housing units, Sold, not occupied"
-    type: integer
-  - name: "dpsf0180008"
+    type: int
+  - name: dpsf0180008
     doc: "Vacant housing units, For seasonal, recreational, or occasional use"
-    type: integer
-  - name: "dpsf0180009"
+    type: int
+  - name: dpsf0180009
     doc: "Vacant housing units, All other"
-    type: integer
-  - name: "dpsf0190001"
+    type: int
+  - name: dpsf0190001
     doc: "Homeowner vacancy rate (percent)"
-    type: integer
-  - name: "dpsf0200001"
+    type: int
+  - name: dpsf0200001
     doc: "Rental vacancy rate (percent)"
-    type: integer
-  - name: "dpsf0210001"
+    type: int
+  - name: dpsf0210001
     doc: "Total occupied housing units"
-    type: integer
-  - name: "dpsf0210002"
+    type: int
+  - name: dpsf0210002
     doc: "Owner-occupied housing units"
-    type: integer
-  - name: "dpsf0210003"
+    type: int
+  - name: dpsf0210003
     doc: "Renter-occupied housing units"
-    type: integer
-  - name: "dpsf0220001"
+    type: int
+  - name: dpsf0220001
     doc: "Population in Owner-occupied housing units"
-    type: integer
-  - name: "dpsf0220002"
+    type: int
+  - name: dpsf0220002
     doc: "Population in Renter-occupied housing units"
-    type: integer
-  - name: "dpsf0230001"
+    type: int
+  - name: dpsf0230001
     doc: "Average household size, owner-occupied"
-    type: integer
-  - name: "dpsf0230002"
+    type: int
+  - name: dpsf0230002
     doc: "Average household size, renter-occupied"
-    type: integer
+    type: int
 - name: demographics_request
   fields:
   - name: lng
