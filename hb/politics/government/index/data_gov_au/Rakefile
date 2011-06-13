@@ -1,8 +1,8 @@
+require 'rubygems'
 require 'hackboxen'
 require 'nokogiri'
 require 'open-uri'
 require 'configliere'
-require 'rubygems'
 
 HACKBOX_DIR = File.dirname(__FILE__)
 
