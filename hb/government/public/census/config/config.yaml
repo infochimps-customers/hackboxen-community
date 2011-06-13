@@ -1,8 +1,7 @@
-1;2c---
+---
 namespace: government.public.census
 protocol: demographics
 filesystem_scheme: file
-# This flag is set to true for initial publishing, then removed when fully complete
 under_consideration: true
 update_frequency: monthly
 
@@ -61,7 +60,6 @@ targets:
   - code_assets:
     - demographics_endpoint
 
-# any non-basic types declared above must be defined explicitly under this type heading
 types:
 - name: census_data_record
   type: record
