@@ -16,7 +16,7 @@ task :get_data do
   #individual dataset pages have the description and dataset size.
   begin
     puts "Pulling the catalog page."
-    listing = Nokogiri::HTML(open(Settings['catalog_url']))
+    listing = Nokogiri::HTML(open(WorkingConfig['catalog_url']))
     listing.xpath("//h3").each {|d| get_dataset_page d.children.attribute('href').to_s}
   rescue
     puts("Error connecting, processing local files.")
