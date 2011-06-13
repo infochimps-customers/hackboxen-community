@@ -133,7 +133,7 @@ def process_dp_dir(tsvfile, dp_dir)
 end
 
 # Do the work
-SqliteShapeDB.open_db(File.join(inputdir, "rawd", "shapes.sqlite3"))
+SqliteShapeDB.open_db(File.join(inputdir, "rawd", "shapes.sqlite"))
 data_dir = File.join(inputdir, "ripd", opts['ftp']['data_dir'])
 tsv_filename = File.join(outputdir, opts["data_assets"][0]["location"])
 FileUtils.mkdir_p(File.dirname(tsv_filename))
