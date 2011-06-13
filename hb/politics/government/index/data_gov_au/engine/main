@@ -59,7 +59,7 @@ task :process_pages do
   ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
   File.open(outfile,'a').write(ic.iconv(buffer))
 
-  puts "There are now #{(Dir[File.join($outputdir,"data/*")]/2).to_s} downloaded datasets."
+  puts "There are now #{(Dir[File.join($outputdir,"data/*")].size/2).to_s} downloaded datasets."
   #Also consider loading in the final array, adding everything, uniqing, and sorting. Seems like it would be simpler to code but longer to run, and I already wrote this code.
 end
 
@@ -120,6 +120,8 @@ def process_page page
     begin
       path = File.join($outputdir,"data",data_name)
       File.new(path,'w').write(open(links).read) unless File.exist?(path)
+      #For debug, only pull down the first 1024 bytes.
+      #File.new(path,'w').write(open(links).read(1024)) unless File.exist?(path)
     rescue
       puts "There was an error pulling down #{data_name} from #{links}."
     end
