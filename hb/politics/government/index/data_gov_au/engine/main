@@ -96,8 +96,7 @@ def process_page page
     links=links[0]
   end
   sour=doc.xpath('//dd[@property="dc:creator"]').children[0].to_s.lstrip
-  
-  if links and not links.empty? and not File.extname(links)[0..3]=".htm"
+  if links and not links.empty? and not File.extname(links)[0..3]==".htm"
     #Generate ICSS
     bname = File.basename(page)
     icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
@@ -121,7 +120,7 @@ def process_page page
       path = File.join($outputdir,"data",data_name)
       File.new(path,'w').write(open(links).read) unless File.exist?(path)
       #For debug, only pull down the first 1024 bytes.
-      #File.new(path,'w').write(open(links).read(1024)) unless File.exist?(path)
+      #File.new(path,'w').write(open(links).read(10)) unless File.exist?(path)
     rescue
       puts "There was an error pulling down #{data_name} from #{links}."
     end
