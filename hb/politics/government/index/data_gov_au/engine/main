@@ -48,11 +48,13 @@ task :process_pages do
     puts "There were #{prev_data.size} datasets already in the catalog, and #{Dir[File.join($inputdir,"ripd/*")].size} total downloaded datasets."
     prev_data.map!{|x| x=x['catalog name']}
     Dir[File.join($inputdir,"ripd/*")].each {|file|
-      $final_array.push(process_page file) unless prev_data.index(File.basename(file)) }
+      $final_array.push(process_page file) unless prev_data.index(File.basename(file))
+      $final_array.pop unless $final_array[-1]}
   else
     puts "There are #{Dir[File.join($inputdir,"ripd/*")].size} total downloaded datasets."
     Dir[File.join($inputdir,"ripd/*")].each {|file|
-      $final_array.push(process_page file)}
+      $final_array.push(process_page file)
+      $final_array.pop unless $final_array[-1]}
   end
   puts "We added #{$final_array.size} datasets to the catalog."
   buffer=$final_array.to_yaml[5..-1]
@@ -99,35 +101,40 @@ def process_page page
   if links and not links.empty? and not File.extname(links)[0..3]==".htm"
     #Generate ICSS
     bname = File.basename(page)
-    icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
-    icss.gsub!("data_gov_au",bname)
     data_name=bname+File.extname(links)
-    icss.gsub!("name_of_dataset.tsv",data_name)
-    icss.gsub!("Name Of Dataset Entry",name)
-    icss.gsub!("- tags","- " << tags.join("\n    - "))
-    icss_desc="A #{sizes} dataset from data.gov.au. #{desc}"
-    #      * Size: if applicable
-    #      * Type: if applicable
-    #      * Desc: if applicable
-    #      * Sexy: Yes, definitely"
-    icss.gsub!("DESCDESCDESC",icss_desc)
     path = File.join($outputdir,"data",bname+".icss.json")
-    ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
-    File.new(path,'w').write(ic.iconv(icss)) unless File.exist?(path)
-    
+    unless File.exist?(path)
+      icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
+      icss.gsub!("data_gov_au",bname)
+      icss.gsub!("name_of_dataset.tsv",data_name)
+      icss.gsub!("Name Of Dataset Entry",name)
+      icss.gsub!("- tags","- " << tags.join("\n    - "))
+      icss_desc="A #{sizes} dataset from data.gov.au. #{desc}"
+      #      * Size: if applicable
+      #      * Type: if applicable
+      #      * Desc: if applicable
+      #      * Sexy: Yes, definitely"
+      icss.gsub!("DESCDESCDESC",icss_desc)
+      ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
+      File.new(path,'w').write(ic.iconv(icss))
+    end
     #Pull down dataset
     begin
       path = File.join($outputdir,"data",data_name)
       links=URI.encode links if links.index(" ")
-      File.new(path,'w').write(open(links).read) unless File.exist?(path)
+      File.new(path,'w').write(open(links).read) unless File.size?(path)
       #For debug, only pull down the first 1024 bytes.
       #File.new(path,'w').write(open(links).read(10)) unless File.exist?(path)
     rescue
       puts "There was an error pulling down #{data_name} from #{links}."
-      path = File.join($outputdir,"data",bname+".icss.json")
-      File.delete(path) if File.exist?(path)
       path = File.join($outputdir,"data",data_name)
-      File.delete(path) if File.exist?(path)
+      #This might be unnecessary, but I want to make sure we don't eat good data if we get here accidentally.
+      unless File.size?(path)
+        File.delete(path) if File.exist?(path)
+        path = File.join($outputdir,"data",bname+".icss.json")
+        File.delete(path) if File.exist?(path)
+        return nil
+      end
     end
   end
   #Add to catalog
