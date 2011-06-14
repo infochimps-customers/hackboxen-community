@@ -116,14 +116,19 @@ def process_page page
     File.new(path,'w').write(ic.iconv(icss)) unless File.exist?(path)
     
     #Pull down dataset
-#    begin
+    begin
       path = File.join($outputdir,"data",data_name)
-      File.new(path,'w').write(open(URI.encode(links)).read) unless File.exist?(path)
+      links=URI.encode links if links.index(" ")
+      File.new(path,'w').write(open(links).read) unless File.exist?(path)
       #For debug, only pull down the first 1024 bytes.
       #File.new(path,'w').write(open(links).read(10)) unless File.exist?(path)
-#    rescue
-#      puts "There was an error pulling down #{data_name} from #{links}."
-#    end
+    rescue
+      puts "There was an error pulling down #{data_name} from #{links}."
+      path = File.join($outputdir,"data",bname+".icss.json")
+      File.delete(path) if File.exist?(path)
+      path = File.join($outputdir,"data",data_name)
+      File.delete(path) if File.exist?(path)
+    end
   end
   #Add to catalog
   return Hash["title",name,"description",desc,"tags",tags,"category list",cats,"overall_rating",rat,"link",links,"dataset size",sizes,"source",sour,"catalog name",File.basename(page)]
