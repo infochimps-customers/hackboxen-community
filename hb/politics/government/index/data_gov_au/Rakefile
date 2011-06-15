@@ -7,7 +7,7 @@ require 'configliere'
 HACKBOX_DIR = File.dirname(__FILE__)
 
 task :move_template do
-  sh "cp config/icss.yaml #{HackBoxen::Paths.rawd_dir}" unless File.exist?(File.join(HackBoxen::Paths.rawd_dir,"icss.yaml"))
+  sh "cp config/icss.json #{HackBoxen::Paths.rawd_dir}" unless File.exist?(File.join(HackBoxen::Paths.rawd_dir,"icss.json"))
 end
 
 task :get_data do

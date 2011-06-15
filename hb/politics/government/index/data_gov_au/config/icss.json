@@ -1,0 +1,1 @@
+{"data_assets":[{"name":"data_gov_au_data_asset","location":"data/name_of_dataset.tsv"}],"under_consideration":true,"targets":{"catalog":[{"name":"data_gov_au_entry","title":"Name Of Dataset Entry from data.gov.au","packages":[{"data_assets":["data_gov_au_data_asset"]}],"tags":["tags"],"description":"DESCDESCDESC"}]},"update_frequency":"monthly"}

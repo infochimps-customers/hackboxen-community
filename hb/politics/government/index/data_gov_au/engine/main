@@ -6,6 +6,7 @@ require 'rubygems'
 require 'iconv'
 require 'rake'
 require 'open-uri'
+require 'json'
 
 $cathash={"Business"=>"economics",
   "Communication"=>"socialsciences-communications",
@@ -58,9 +59,10 @@ task :process_pages do
   end
   puts "We added #{$final_array.size} datasets to the catalog."
   buffer=$final_array.to_yaml[5..-1]
-  ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
-  File.open(outfile,'a').write(ic.iconv(buffer))
-
+  #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
+  #File.open(outfile,'a').write(ic.iconv(buffer))
+  File.open(outfile,'a').write(buffer)
+  
   puts "There are now #{(Dir[File.join($outputdir,"data/*")].size/2).to_s} downloaded datasets."
   #Also consider loading in the final array, adding everything, uniqing, and sorting. Seems like it would be simpler to code but longer to run, and I already wrote this code.
 end
@@ -100,23 +102,26 @@ def process_page page
   sour=doc.xpath('//dd[@property="dc:creator"]').children[0].to_s.lstrip
   if links and not links.empty? and not File.extname(links)[0..3]==".htm"
     #Generate ICSS
-    bname = File.basename(page)
+    #The file can't start with a number, or contain characters other than underscores. gsub to the rescue!
+    bname = File.basename(page).gsub('-',"_")
+    #If it starts with a number, move it to the back.
+    lead_num = bname[/\A\d.+\d/]
+    bname = bname[lead_num.size+1..-1] << "-" << bname[0..lead_num.size-1] if lead_num
+    #Add in the extension.
     data_name=bname+File.extname(links)
+    #Write the ICSS.
     path = File.join($outputdir,"data",bname+".icss.json")
     unless File.exist?(path)
-      icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
-      icss.gsub!("data_gov_au",bname)
-      icss.gsub!("name_of_dataset.tsv",data_name)
-      icss.gsub!("Name Of Dataset Entry",name)
-      icss.gsub!("- tags","- " << tags.join("\n    - "))
-      icss_desc="A #{sizes} dataset from data.gov.au. #{desc}"
-      #      * Size: if applicable
-      #      * Type: if applicable
-      #      * Desc: if applicable
-      #      * Sexy: Yes, definitely"
-      icss.gsub!("DESCDESCDESC",icss_desc)
-      ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
-      File.new(path,'w').write(ic.iconv(icss))
+      icss_string = File.open(File.join($inputdir,"rawd","icss.json")).read
+      icss = JSON.parse(icss_string)
+      icss["data_assets"][0]["name"]=bname+"_data_asset"
+      icss["data_assets"][0]["name"]=data_name
+      icss["targets"]["catalog"][0]["title"].gsub!("Name Of Dataset Entry",name)
+      icss["targets"]["catalog"][0]["tags"]=tags
+      icss["targets"]["catalog"][0]["description"]="A #{sizes} dataset from data.gov.au. #{desc}"
+      #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
+      #File.new(path,'w').write(ic.iconv(icss.inspect))
+      File.new(path,'w').write(icss.inspect)
     end
     #Pull down dataset
     begin
@@ -142,14 +147,14 @@ def process_page page
 end
 
 task :catalog_icss do
-  icss = File.open(File.join($inputdir,"rawd","icss.yaml")).read
-  icss.gsub!("data/name_of_dataset.tsv","catalog.yaml")
-  icss.gsub!("au_entry","au_catalog")
-  icss.gsub!("Name Of Dataset Entry from data.gov.au","data.gov.au Dataset Catalog")
-  icss.gsub!("- tags","- government\n    - australia")
-  icss_desc="The Australian government posts datasets online for public use, and there are currently 270 datasets available. All of the datasets which are a single file are also hosted here on infochimps, but this catalog contains basic metadata about all of the datasets available, including links to websites which can't be easily downloaded."
-  icss.gsub!("DESCDESCDESC",icss_desc)
-  File.new(File.join($outputdir,"catalog.icss.json"),'w').write(icss) #Always update the catalog icss.
+  icss_string = File.open(File.join($inputdir,"rawd","icss.json")).read
+  icss = JSON.parse(icss_string)
+  icss["data_assets"][0]["name"]="catalog.yaml"
+  icss["targets"]["catalog"][0]["title"]="data.gov.au Dataset Catalog"
+  icss["targets"]["catalog"][0]["tags"]=["government","Australia","public data"]
+  icss["targets"]["catalog"][0]["description"]="The Australian government posts datasets online for public use, and there are currently 270 datasets available. All of the datasets which are a single file are also hosted here on infochimps, but this catalog contains basic metadata about all of the datasets available, including links to websites which can't be easily downloaded."
+  File.new(File.join($outputdir,"catalog.icss.json"),'w').write(icss.inspect)
+  #Always update the catalog icss.
 end
 
 task :run => [:process_pages, :catalog_icss]
