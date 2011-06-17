@@ -26,8 +26,8 @@ end
 def get_dataset_page url
   path = File.join(HackBoxen::Paths.ripd_dir,File.basename(url))
   return if File.exist?(path)
-  File.new(path,'w').write(open(url).read)
-  puts "#{url} => #{path}"
+  sh "wget -O #{path} #{url}" unless File.size?(path)
+  #File.new(path,'w').write(open(url).read)
 end
 
 task :default => ['hb:create_working_config', :move_template, :get_data, 'hb:init']

@@ -73,7 +73,7 @@ def process_page page
   doc = Nokogiri::HTML(File.open(page))
   name=doc.xpath('//meta[@name="DCTERMS.Title"]')[0].attribute('content').to_s
   desc=doc.xpath('//meta[@name="DCTERMS.Description"]')[0].attribute('content').to_s
-  tags=doc.xpath('//div[@class="entry"]//dd[@property="dc:keywords"]').children.map{|x| x.children.to_s}.delete_if{|n| n==""}
+  tags=doc.xpath('//div[@class="entry"]//dd[@property="dc:keywords"]').children.map{|x| x.children.to_s.gsub(" ","_").downcase.gsub(/\W/,"")}.uniq.delete_if{|n| n==""}
   cats=doc.xpath('//div[@class="entry"]//dd[@property="dcat:theme"]').children.map{|x| $cathash[x.children.to_s]}.delete_if{|n| !n}
   rat=doc.xpath('//div[starts-with(@id,"gdsr_mur_text")]').to_s[/\d\.\d/]
   #There might be multiple dataset links. We want to pull down only one, with
@@ -122,7 +122,7 @@ def process_page page
       icss["targets"]["catalog"][0]["description"]="A #{sizes} dataset from data.gov.au. #{desc}"
       #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
       #File.new(path,'w').write(ic.iconv(icss.inspect))
-      File.new(path,'w').write(icss.inspect)
+      File.new(path,'w').write(icss.to_json)
     end
     #Pull down dataset
     begin
@@ -153,9 +153,9 @@ task :catalog_icss do
   icss = JSON.parse(icss_string)
   icss["data_assets"][0]["name"]="catalog.yaml"
   icss["targets"]["catalog"][0]["title"]="data.gov.au Dataset Catalog"
-  icss["targets"]["catalog"][0]["tags"]=["government","Australia","public data"]
+  icss["targets"]["catalog"][0]["tags"]=["government","australia","public data"]
   icss["targets"]["catalog"][0]["description"]="The Australian government posts datasets online for public use, and there are currently 270 datasets available. All of the datasets which are a single file are also hosted here on infochimps, but this catalog contains basic metadata about all of the datasets available, including links to websites which can't be easily downloaded."
-  File.new(File.join($outputdir,"catalog.icss.json"),'w').write(icss.inspect)
+  File.new(File.join($outputdir,"catalog.icss.json"),'w').write(icss.to_json)
   #Always update the catalog icss.
 end
 
