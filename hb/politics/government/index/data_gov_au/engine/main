@@ -104,7 +104,7 @@ def process_page page
   if links and not links.empty? and not File.extname(links)[0..3]==".htm"
     #Generate ICSS
     #The file can't start with a number, or contain characters other than underscores. gsub to the rescue!
-    bname = File.basename(page).gsub('-',"_")
+    bname = File.basename(page).gsub('-',"_").gsub(/%\w\w/,"")
     #If it starts with a number, move it to the back.
     lead_num = bname[/\A\d.+\d/]
     bname = bname[lead_num.size+1..-1] << "-" << bname[0..lead_num.size-1] if lead_num
