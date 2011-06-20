@@ -120,6 +120,7 @@ def process_page page
       icss["targets"]["catalog"][0]["title"].gsub!("Name Of Dataset Entry",name)
       icss["targets"]["catalog"][0]["tags"]=tags
       icss["targets"]["catalog"][0]["description"]="A #{sizes} dataset from data.gov.au. #{desc}"
+      icss["namespace"]=bname
       #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
       #File.new(path,'w').write(ic.iconv(icss.inspect))
       File.new(path,'w').write(icss.to_json)
