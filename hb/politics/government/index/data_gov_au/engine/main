@@ -63,7 +63,7 @@ task :process_pages do
   #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
   #File.open(outfile,'a').write(ic.iconv(buffer))
   File.open(outfile,'a').write(buffer)
-  
+
   puts "There are now #{(Dir[File.join($outputdir,"data/*")].size/2).to_s} downloaded datasets."
   #Also consider loading in the final array, adding everything, uniqing, and sorting. Seems like it would be simpler to code but longer to run, and I already wrote this code.
 end
@@ -115,12 +115,13 @@ def process_page page
     unless File.exist?(path)
       icss_string = File.open(File.join($inputdir,"rawd","icss.json")).read
       icss = JSON.parse(icss_string)
-      icss["data_assets"][0]["name"]=bname+"_data_asset"
-      icss["data_assets"][0]["name"]=data_name
+      icss["data_assets"][0]["name"]     = "data_gov_au_data_asset"
+      icss["data_assets"][0]["location"] = data_name
       icss["targets"]["catalog"][0]["title"].gsub!("Name Of Dataset Entry",name)
       icss["targets"]["catalog"][0]["tags"]=tags
       icss["targets"]["catalog"][0]["description"]="A #{sizes} dataset from data.gov.au. #{desc}"
-      icss["namespace"]=bname
+      icss["namespace"] = 'politics.government.index.data_gov_au'
+      icss['protocol'] = bname
       #ic = Iconv.new("UTF-8//TRANSLIT", "LATIN1")
       #File.new(path,'w').write(ic.iconv(icss.inspect))
       File.new(path,'w').write(icss.to_json)
