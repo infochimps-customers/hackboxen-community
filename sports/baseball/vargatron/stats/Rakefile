@@ -20,7 +20,7 @@ task :get_data do
     #fs.copy_to_local(WorkingConfig[:s3_loc_2],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2])))
     #Not sure the second file is actually necessary.
     #Now, unzip the files we pulled. This'll take a while.
-    sh "tar xvfzk #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))} -C #{path_to(:rawd_dir)}"
+    sh "tar xvfz #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))} -C #{path_to(:rawd_dir)}" unless Dir[File.join(path_to(:rawd_dir),"flatfiles")<<"/*"].size>=116190
   end
   
   # fs.put
