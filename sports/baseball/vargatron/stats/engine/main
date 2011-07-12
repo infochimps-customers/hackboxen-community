@@ -12,7 +12,7 @@ require 'hackboxen'
 puts "-"*80
 puts options.inspect
 $datasource = ""
-if options[:debug]
+if options["debug"]
   puts "MAIN: In debug mode: only processing the Texas Rangers."
   $datasource=File.join(path_to(:rawd_dir),"debug")
 else
