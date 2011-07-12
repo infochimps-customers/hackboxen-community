@@ -13,14 +13,14 @@ task :get_data do
     puts "RAKE: In debug mode: only processing the Texas Rangers."
     fs = Swineherd::FileSystem.get(:s3,WorkingConfig[:s3_filesystem][:access_key],WorkingConfig[:s3_filesystem][:secret_key])
     fs.copy_to_local(WorkingConfig[:s3_debug],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug])))
-    sh "unzip #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug]))} -d #{path_to(:rawd_dir)}"
+    sh "unzip #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug]))} -n -d #{path_to(:rawd_dir)}"
   else
     fs = Swineherd::FileSystem.get(:s3,WorkingConfig[:s3_filesystem][:access_key],WorkingConfig[:s3_filesystem][:secret_key])
     fs.copy_to_local(WorkingConfig[:s3_loc_1],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1])))
     #fs.copy_to_local(WorkingConfig[:s3_loc_2],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2])))
     #Not sure the second file is actually necessary.
     #Now, unzip the files we pulled. This'll take a while.
-    sh "tar xvfz #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))} -C #{path_to(:rawd_dir)}"
+    sh "tar xvfzk #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))} -C #{path_to(:rawd_dir)}"
   end
   
   # fs.put

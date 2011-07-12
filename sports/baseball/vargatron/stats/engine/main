@@ -7,6 +7,7 @@ require 'json'
 options = JSON.parse(File.read(File.join(inputdir, "env", "working_config.json")))
 
 require 'hackboxen'
+require 'rubygems'
 #path_to :fixd_dir  # => "[current_dataroot]/fixd/"
 #path_to :hb_engine # => "[current_hackbox]/engine/"
 puts "-"*80
