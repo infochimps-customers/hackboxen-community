@@ -1,0 +1,47 @@
+---
+#
+# This is a sample config. Any hackbox-specific options or parameters that need to be accessed
+# during the execution of a hackbox should be put in here.
+#
+namespace: sports.baseball.vargatron
+hackbox_name: stats
+filesystem_scheme: file
+requires:
+  language:
+    ruby: 1.8.7
+    gems:
+    - hackboxen: 0.1.2
+    - swineherd:
+under_consideration: true # This flag is set to true for initial publishing, then removed when fully complete
+update_frequency: monthly # How often the data is refreshed
+s3_loc_1: infochimps-hackboxen/data/sports/baseball/vargatron/pennantAPIv02.tar.gz
+s3_loc_2: infochimps-hackboxen/data/sports/baseball/vargatron/standings.zip
+s3_debug: infochimps-hackboxen/data/sports/baseball/vargatron/debug.zip
+
+#Datasets:
+#team_lookup
+#	elastic search
+#	json hash
+#	league, colors, seasons played,
+#season_lookup
+#	Hbase
+#	teamid, season
+#	win/loss, gameids, hits, percentages, etc. 
+#game_lookup
+#	Hbase
+#	team_id, season, game_date or game_num
+
+#fixd/
+#	team_stats.icss.json
+#	season_stats.icss.json
+#	game_stats.icss.json
+#	data/
+#		team_stats
+#	code/
+
+#Expectations:
+#debug_mode - needs to run next to main_mode
+#3 icss files / Grok data - get all data names and formats
+#Parsing - team   teamfile
+#	 - season team+season file
+#	 - game	  game file

@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+inputdir  = ARGV[0]
+outputdir = ARGV[1]
+
+require 'json'
+options = JSON.parse(File.read(File.join(inputdir, "env", "working_config.json")))
+
+require 'hackboxen'
+#path_to :fixd_dir  # => "[current_dataroot]/fixd/"
+#path_to :hb_engine # => "[current_hackbox]/engine/"
+puts "-"*80
+puts options.inspect
+$datasource = ""
+if options[:debug]
+  puts "MAIN: In debug mode: only processing the Texas Rangers."
+  $datasource=File.join(path_to(:rawd_dir),"debug")
+else
+  puts "MAIN: In full mode: processing everything."
+  $datasource=File.join(path_to(:rawd_dir),"flatfiles")
+end
+
+task :parse_team_files do
+  
+end
+
+def parse_team_file file
+  
+end
+
+task :parse_game_files do
+  
+end
+
+def parse_game_file file
+  
+end
+
+task :make_icss do
+
+end
+
+task :run => [:parse_team_files, :make_icss]
+
+Rake::Task[:run].invoke
+
