@@ -43,6 +43,13 @@ targets:
     - more-tags-please
 
 types:
+- name: team_stats_lookup_request
+  doc: Query API parameters for the team_record lookup message.
+  fields:
+  - name: team_name
+    default: Rangers
+    type: string
+
 - name: team_record
   type: record
   doc: A team record describes a team's id, colors, years played, and record for those years, in both absolute and percentage terms. When a team switches cities, it gets a new team_record.
