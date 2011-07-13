@@ -1,0 +1,79 @@
+---
+namespace: sports.baseball.vargatron
+protocol: team_stats
+
+data_assets:
+- name: team_stats_data_asset
+  location: data/team_stats_data.json
+  type: team_record
+
+code_assets:
+- name: team_stats_code
+  location: code/team_stats_endpoint.rb
+
+messages:
+  lookup:
+    response: team_record
+    doc: Get a team's team_id, list of years played, W-L records, and more.
+    request:
+    - name: team_stats_lookup_request
+      type: team_stats_lookup_request
+    samples:
+      request:
+        -team_name: Rangers
+
+targets:
+  elasticsearch: Travis will do this?
+
+  catalog:
+  - name: stats_catalog_entry
+    title: Pennant Baseball History (1960-2010)
+    description: -|
+      Batter up! Enter an MLB team name and in return get its team_id and a list of the years played, between 1960-2010.
+
+      Partner this API with the Pennant Baseball Seasons API and get back team statistics, records, and game_ids. Use game_ids with the Pennant Baseball Game Logs API to get full at bat data.
+
+      The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up. Brass Monkey allows you to try out the data for free up to the 5,000 call limit.
+      Note: While Pennant's Baseball History is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
+    tags:
+    - sports
+    - baseball
+    - stats
+    - statistics
+    - more-tags-please
+
+types:
+- name: team_record
+  type: record
+  doc: A team record describes a team's id, colors, years played, and record for those years, in both absolute and percentage terms. When a team switches cities, it gets a new team_record.
+  fields:
+  - name: team_id
+    doc: Uppercase 3-letter team identifier. When a team moves, it gets a new id.
+    type: string
+  - name: team_loc
+    doc: The team location, generally a city or state.
+    type: string
+  - name: team_name 
+    doc: The team's name.
+    type: string
+  - name: year_list
+    doc: A list of all the years that the team played.
+    type: array
+  - name: win_loss_record
+    doc: A list of all the seasons that the team played with win-loss records, in the format '19XX-WIN-LOSS'.
+    type: array
+  - name: pri_color
+    doc: The team's primary color's name.
+    type: string
+  - name: sec_color
+    doc: The team's secondary color's name.
+    type: string
+  - name: pri_color_hex
+    doc: The team's primary color's hexadecimal code.
+    type: string
+  - name: sec_color_hex
+    doc: The team's secondary color's hexadecimal code.
+    type: string
+  - name: league
+    doc: Uppercase two-letter league identifier.
+    type: string
