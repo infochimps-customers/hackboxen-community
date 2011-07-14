@@ -32,7 +32,7 @@ targets:
       To find individual season statistics just enter the team_id and year. You can get the team_id and year from the Pennant Baseball History API. You can also use this API in concert with Pennant Baseball History to get a list of all available seasons and team_ids.
 
       Are you an app developer? Use the API to build captivating visualizations or to recap your favorite seasons.
-Fancy yourself a statistician? Use this data to glean new insights about your favorite teams.
+      Fancy yourself a statistician? Use this data to glean new insights about your favorite teams.
 
       The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
       Note that while Pennant's Baseball Seasons is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
