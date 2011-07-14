@@ -1,16 +1,13 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: team_stats
-
 data_assets:
 - name: team_stats_data_asset
   location: data/team_stats_data.json
   type: team_record
-
 code_assets:
 - name: team_stats_code
   location: code/team_stats_endpoint.rb
-
 messages:
   lookup:
     response: team_record
@@ -19,9 +16,8 @@ messages:
     - name: team_stats_lookup_request
       type: team_stats_lookup_request
     samples:
-      request:
-        -team_name: Rangers
-
+    - request:
+      - team_name: Rangers
 targets:
   catalog:
   - name: team_stats_catalog_entry
@@ -39,16 +35,13 @@ targets:
     - stats
     - statistics
     - more-tags-please
-
 types:
 - name: team_stats_lookup_request
   doc: Query API parameters for the team_record lookup message.
   type: record
   fields:
   - name: team_name
-    default: Rangers
     type: string
-
 - name: team_record
   type: record
   doc: A team record describes a team's id, colors, years played, and record for those years, in both absolute and percentage terms. When a team switches cities, it gets a new team_record.
@@ -64,12 +57,14 @@ types:
     type: string
   - name: year_list
     doc: A list of all the years that the team played.
-    type: array
-    items: string
+    type:
+      type: array
+      items: string
   - name: win_loss_record
     doc: A list of all the seasons that the team played with win-loss records, in the format '19XX-WIN-LOSS'.
-    type: array
-    items: string
+    type:
+      type: array
+      items: string
   - name: pri_color
     doc: The team's primary color's name.
     type: string

@@ -1,0 +1,284 @@
+---
+namespace: sports.baseball.vargatron
+protocol: season_stats
+
+data_assets:
+- name: season_stats_data_asset
+  location: data/season_stats_data.json
+  type: season_record
+
+code_assets:
+- name: season_stats_code
+  location: code/season_stats_endpoint.rb
+
+messages:
+  lookup:
+    response: season_record
+    doc: Get detailed records for a specific team's season.
+    request:
+    - name: season_stats_lookup_request
+      type: season_stats_lookup_request
+    samples:
+    - request:
+      - season_id: TEX2010
+
+targets:
+  catalog:
+  - name: season_stats_catalog_entry
+    title: Pennant Baseball Seasons (1960-2010)
+    description: -|
+      Take me out to the ball game! Get game_ids and see team season statistics like win, losses, RBIs, OBP, ERA,and many more. Get both the absolute values and percentiles related to the rest of the league. Plug the game_id into the Pennant Baseball Game Logs API to get at bat data.
+
+      To find individual season statistics just enter the team_id and year. You can get the team_id and year from the Pennant Baseball History API. You can also use this API in concert with Pennant Baseball History to get a list of all available seasons and team_ids.
+
+      Are you an app developer? Use the API to build captivating visualizations or to recap your favorite seasons.
+Fancy yourself a statistician? Use this data to glean new insights about your favorite teams.
+
+      The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
+      Note that while Pennant's Baseball Seasons is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
+    tags:
+    - sports
+    - baseball
+    - stats
+    - statistics
+    - more-tags-please
+
+types:
+- name: season_record
+  type: record
+  doc: All of the team's records for a specific season.
+  fields:
+  - name: team_id
+    doc: Uppercase 3-letter team identifier. When a team moves, it gets a new id.
+    type: string
+  - name: team_loc
+    doc: The team location, generally a city or state.
+    type: string
+  - name: team_name 
+    doc: The team's name.
+    type: string
+  - name: year
+    doc: Year of the season.
+    type: string
+  - name: league
+    doc: Uppercase two-letter league identifier.
+    type: string
+  - name: post_season_stats
+    doc: Wins, losses, and [PROD what the heck is a DS?] in the postseason.
+    type: post_season_record
+  - name: absolute_stats
+    doc: 30 statistics in absolute terms.
+    type: absolute_record
+  - name: relative_stats
+    doc: 30 statistics relative to the team's league.
+    type: relative_record
+  - name: game_ids
+    doc: List of all game_ids for games played this season.
+    type:
+      type: array
+      items: string
+
+- name: post_season_record
+  type: record
+  doc: Stats from the post-season.
+  fields:
+  - name: DS
+    doc: PROD No clue.
+    type: int
+  - name: LS
+    doc: PROD Losses?
+    type: int
+  - name: WS
+    doc: PROD Wins?
+    type: int
+
+
+- name: absolute_record
+  type: record
+  doc: Stats from the season in absolute terms.
+  fields:
+  - name: W
+    doc: Total wins this season.
+    type: int
+  - name: L
+    doc: Total losses this season.
+    type: int
+  - name: R
+    doc: Total runs this season.
+    type: int
+  - name: AB
+    doc: Total at-bats this season.
+    type: int
+  - name: BA
+    doc: Total batting average this season.
+    type: float
+  - name: OBP
+    doc: Total on base percentage this season.
+    type: float
+  - name: H
+    doc: Total hits this season.
+    type: int
+  - name: DBL
+    doc: Total doubles this season.
+    type: int
+  - name: TPL
+    doc: Total triples this season.
+    type: int
+  - name: HR
+    doc: Total home runs this season.
+    type: int
+  - name: BB
+    doc: Total walks this season.
+    type: int
+  - name: SB
+    doc: Total stolen bases this season.
+    type: int
+  - name: SO
+    doc: Total strikeouts this season.
+    type: int
+  - name: CS
+    doc: Total caught stealing this season.
+    type: int
+  - name: HBP
+    doc: Total hit by pitcher this season.
+    type: int
+  - name: SF
+    doc: Total sacrifice flies this season.
+    type: int
+  - name: RA
+    doc: Total PROD this season.
+    type: int
+  - name: ER
+    doc: Total PROD this season.
+    type: int
+  - name: ERA
+    doc: Total earned run average this season.
+    type: float
+  - name: CG
+    doc: Total complete games this season.
+    type: int
+  - name: SHO
+    doc: Total shutouts this season.
+    type: int
+  - name: SV
+    doc: Total saves this season.
+    type: int
+  - name: IPouts
+    doc: Total PROD this season.
+    type: int
+  - name: HA
+    doc: Total hits against this season.
+    type: int
+  - name: HRA
+    doc: Total home runs against this season.
+    type: int
+  - name: BBA
+    doc: Total walks against this season.
+    type: int
+  - name: SOA
+    doc: Total strikeouts against this season.
+    type: int
+  - name: E
+    doc: Total errors this season.
+    type: int
+  - name: DP
+    doc: Total PROD this season.
+    type: int
+  - name: FP
+    doc: Total fielding percentage this season.
+    type: float
+
+- name: relative_record
+  type: record
+  doc: Stats from the season relative to the team's league. Every number is a percentile ranking.
+  fields:
+  - name: W
+    doc: League percentile for wins this season.
+    type: float
+  - name: L
+    doc: League percentile for losses this season.
+    type: float
+  - name: R
+    doc: League percentile for runs this season.
+    type: float
+  - name: AB
+    doc: League percentile for at-bats this season.
+    type: float
+  - name: BA
+    doc: League percentile for batting average this season.
+    type: float
+  - name: OBP
+    doc: League percentile for on base percentage this season.
+    type: float
+  - name: H
+    doc: League percentile for hits this season.
+    type: float
+  - name: DBL
+    doc: League percentile for doubles this season.
+    type: float
+  - name: TPL
+    doc: League percentile for triples this season.
+    type: float
+  - name: HR
+    doc: League percentile for home runs this season.
+    type: float
+  - name: BB
+    doc: League percentile for walks this season.
+    type: float
+  - name: SB
+    doc: League percentile for stolen bases this season.
+    type: float
+  - name: SO
+    doc: League percentile for strikeouts this season.
+    type: float
+  - name: CS
+    doc: League percentile for caught stealing this season.
+    type: float
+  - name: HBP
+    doc: League percentile for hit by pitcher this season.
+    type: float
+  - name: SF
+    doc: League percentile for sacrifice flies this season.
+    type: float
+  - name: RA
+    doc: League percentile for PROD this season.
+    type: float
+  - name: ER
+    doc: League percentile for PROD this season.
+    type: float
+  - name: ERA
+    doc: League percentile for earned run average this season.
+    type: float
+  - name: CG
+    doc: League percentile for complete games this season.
+    type: float
+  - name: SHO
+    doc: League percentile for shutouts this season.
+    type: float
+  - name: SV
+    doc: League percentile for saves this season.
+    type: float
+  - name: IPouts
+    doc: League percentile for PROD this season.
+    type: float
+  - name: HA
+    doc: League percentile for hits against this season.
+    type: float
+  - name: HRA
+    doc: League percentile for home runs against this season.
+    type: float
+  - name: BBA
+    doc: League percentile for walks against this season.
+    type: float
+  - name: SOA
+    doc: League percentile for strikeouts against this season.
+    type: float
+  - name: E
+    doc: League percentile for errors this season.
+    type: float
+  - name: DP
+    doc: League percentile for PROD this season.
+    type: float
+  - name: FP
+    doc: League percentile for fielding percentage this season.
+    type: float
