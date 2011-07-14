@@ -24,7 +24,7 @@ messages:
 
 targets:
   catalog:
-  - name: stats_catalog_entry
+  - name: team_stats_catalog_entry
     title: Pennant Baseball History (1960-2010)
     description: -|
       Batter up! Enter an MLB team name and in return get its team_id and a list of the years played, between 1960-2010.
@@ -65,9 +65,11 @@ types:
   - name: year_list
     doc: A list of all the years that the team played.
     type: array
+    items: string
   - name: win_loss_record
     doc: A list of all the seasons that the team played with win-loss records, in the format '19XX-WIN-LOSS'.
     type: array
+    items: string
   - name: pri_color
     doc: The team's primary color's name.
     type: string
