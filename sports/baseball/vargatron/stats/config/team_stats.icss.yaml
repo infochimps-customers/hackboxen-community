@@ -55,16 +55,11 @@ types:
   - name: team_name 
     doc: The team's name.
     type: string
-  - name: year_list
-    doc: A list of all the years that the team played.
+  - name: year_records
+    doc: A list of all the years that the team played, with wins, losses, and league for each year.
     type:
       type: array
-      items: string
-  - name: win_loss_record
-    doc: A list of all the seasons that the team played with win-loss records, in the format '19XX-WIN-LOSS'.
-    type:
-      type: array
-      items: string
+      items: year_record
   - name: pri_color
     doc: The team's primary color's name.
     type: string
@@ -77,6 +72,20 @@ types:
   - name: sec_color_hex
     doc: The team's secondary color's hexadecimal code.
     type: string
+
+- name: year_record
+  type: record
+  doc: A year record contains the year, the number of wins, the number of losses, and the league.
+  fields:
+  - name: year
+    doc: The year for this record.
+    type: int
+  - name: wins
+    doc: Number of wins this year.
+    type: int
+  - name: losses
+    doc: Number of losses this year.
+    type: int
   - name: league
     doc: Uppercase two-letter league identifier.
     type: string
