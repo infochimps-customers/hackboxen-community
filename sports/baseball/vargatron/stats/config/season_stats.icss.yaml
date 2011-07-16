@@ -72,11 +72,34 @@ types:
   - name: relative_stats
     doc: 30 statistics relative to the team's league.
     type: relative_record
-  - name: game_ids
-    doc: List of all game_ids for games played this season.
+  - name: game_records
+    doc: List of all games played this season, including game_ids, dates, score, opponent's score, and result. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
     type:
       type: array
-      items: string
+      items: game_record
+
+- name: game_record
+  type: record
+  doc: The game_id, date, score, opponent's score, and result for a specific game. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
+  fields:
+  - name: game_id
+    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
+    type: string
+  - name: date
+    doc: The date of the game. The date's format is "BBBBCCDD". BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day.
+    type: string
+  - name: op_id
+    doc: The three-letter uppercase id for the opposing team.
+    type: string
+  - name: score
+    doc: The number of points this team scored.
+    type: int
+  - name: op_score
+    doc: The number of points the other team scored.
+    type: int
+  - name: result
+    doc: Whether the game was a win ("W") or a loss ("L").
+    type: string
 
 - name: post_season_record
   type: record

@@ -57,7 +57,7 @@ types:
   - name: day_of_week
     doc: What day of the week the game fell on.
     type: string
-  - name: Attendance
+  - name: attendance
     doc: The number of fans in attendence at the stadium.
     type: string
   - name: a_team_id
@@ -74,7 +74,7 @@ types:
     type: string
   - name: innings
     doc: Play-by-play for the game, broken into innings.
-    type:
+    type:	      
       type: array
       items: inning_record
 

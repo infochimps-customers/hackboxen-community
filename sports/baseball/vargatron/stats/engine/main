@@ -6,42 +6,184 @@ outputdir = ARGV[1]
 require 'rubygems'
 require 'hackboxen'
 require 'json'
+require 'nokogiri'
 options = JSON.parse(File.read(File.join(inputdir, "env", "working_config.json")))
 
 #path_to :fixd_dir  # => "[current_dataroot]/fixd/"
 #path_to :hb_engine # => "[current_hackbox]/engine/"
 puts "-"*80
-puts options.inspect
+#puts options.inspect
 $datasource = ""
+$log= []
+#These output files need to change to whatever format they actually should be.
+FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"data"))
+$team_out = File.open(File.join(path_to(:fixd_dir),"data","team_stats.tsv"),'w')
+$season_out = File.open(File.join(path_to(:fixd_dir),"data","season_stats.tsv"),'w')
+$game_out = File.open(File.join(path_to(:fixd_dir),"data","game_stats.tsv"),'w')
+
 if options["debug"]
   puts "MAIN: In debug mode: only processing the Texas Rangers."
   $datasource=File.join(path_to(:rawd_dir),"debug")
+  log_file_loc = File.join(path_to(:log_dir),"debug.txt")
 else
   puts "MAIN: In full mode: processing everything."
   $datasource=File.join(path_to(:rawd_dir),"flatfiles")
+  log_file_loc = File.join(path_to(:log_dir),"main.txt")
+end
+
+if File.exists?(log_file_loc)
+  #Load in the log file.
+  $log_file=File.open(log_file_loc,'r')
+  $log_file.each_line{ |l|
+    $log.push(l.chomp) }
+  $log_file.close
+  $log_file=File.open(log_file_loc,'a')
+else
+  #Make the log file.
+  $log_file=File.open(log_file_loc,'w')
 end
 
 task :parse_team_files do
-  
+  Dir[File.join($datasource,"???.xml")].each { |t_file|
+    #Since team_records are done last, we can skip everything if the team file is in the log.
+    next if $log.index(t_file)
+    #Process the team file and all of its season files.
+    parse_team_file(t_file)
+  }
 end
 
+#Returns a complete team_record object. 
 def parse_team_file file
-  
+  x = Nokogiri::XML.parse(File.read(file))
+  #The team file has most of the data for each season, but it doesn't have the list of game_ids. We'll need to pull each season file for that. While we're at it, we'll also pull the win-loss records for the team_record.
+  #First, get a list of all of the seasons:
+  year_records=[]
+  x.xpath('/team/seasons').children.each{|y|
+    #For the team_record:
+    year_records.push(Hash["year",y.xpath('./@year')[0].value.to_i,
+                           "wins",y.xpath('./teamStats/@W')[0].value.to_i,
+                           "losses",y.xpath('./teamStats/@L')[0].value.to_i,
+                           "league",y.xpath('./@league')[0].value])
+    #Now, create the season_record if we haven't done this one.
+    s_file=file.gsub(/\.xml\z/,year_records.last["year"].to_s<<".xml")
+    next if $log.index(s_file)
+    season_record = {}
+    season_record.store("team_id",x.xpath('/team/info/@teamID')[0].value)
+    season_record.store("team_loc",x.xpath('/team/info/@location')[0].value)
+    season_record.store("team_name",x.xpath('/team/info/@name')[0].value)
+    season_record.store("year",y.xpath('./@year')[0].value.to_i)
+    season_record.store("league",y.xpath('./@league')[0].value)
+    pss = {}
+    y.xpath('./postSeasonSeriesWins')[0].attributes.each{|k,v|
+      pss.store(k,v.value.to_i)}
+    season_record.store("post_season_stats",pss)
+    as = {}
+    y.xpath('./teamStats')[0].attributes.each{|k,v|
+      #Warning: this will work so long as any of the averages and percentages contain a decimal place, which *should* be true for every number in the dataset.
+      if (v.value.index('.'))
+        as.store(k,v.value.to_f)
+      else
+        as.store(k,v.value.to_i)
+      end
+    }
+    season_record.store("absolute_stats",as)
+    rs = {}
+    y.xpath('./teamStats')[0].attributes.each{|k,v|
+      #These should all be floats, so no warning here.
+      rs.store(k,v.value.to_f)
+    }
+    season_record.store("relative_stats",rs)
+    #Now all that's left is pulling out the list of game_ids from the season file.
+    z = Nokogiri::XML.parse(File.read(s_file))
+    game_records=[]
+    z.xpath('/team/games')[0].children.each{|w|
+      gr = Hash["game_id",w.xpath('./@id')[0].value,
+                "date",w.xpath('./@date')[0].value,
+                "result",w.xpath('./results/@result')[0].value,
+                "op_id",w.xpath('./opponentinfo/@opponentid')[0].value]
+      if w.xpath('./@homeaway')[0].value=="home"
+        gr.store("score",w.xpath('./results/@homescore')[0].value)
+        gr.store("op_score",w.xpath('./results/@awayscore')[0].value)
+      else
+        gr.store("op_score",w.xpath('./results/@homescore')[0].value)
+        gr.store("score",w.xpath('./results/@awayscore')[0].value)
+      end
+      game_records.push(gr)
+    }
+    season_record.store("game_records",game_records)
+    #We now have a complete season_record! Let's write it
+    $season_out.write(season_record.to_json.inspect)
+    #and write in the log that we finished this file.
+    $log_file.puts(s_file)
+  }
+  #Making the team record is actually the last thing we'll do.
+  team_record = {}
+  team_record.store("team_id",x.xpath('/team/info/@teamID')[0].value)
+  team_record.store("team_loc",x.xpath('/team/info/@location')[0].value)
+  team_record.store("team_name",x.xpath('/team/info/@name')[0].value)
+  team_record.store("pri_color",x.xpath('/team/info/@primaryColorName')[0].value)
+  team_record.store("sec_color",x.xpath('/team/info/@secondaryColorName')[0].value)
+  team_record.store("pri_color_hex",x.xpath('/team/info/@primaryColorHex')[0].value)
+  team_record.store("sec_color_hex",x.xpath('/team/info/@secondaryColorHex')[0].value)
+  #team_record.store("league",x.xpath('/team/info/@teamID')[0].value)
+  #Need to figure out if league varies from year to year.
+  team_record.store("year_records",year_records)
+  #Append the team_record to the file.
+  $team_out.write(team_record.to_json.inspect)
+  #Finally, add the file to the log.
+  $log_file.puts(file)
 end
 
 task :parse_game_files do
-  
+  Dir[File.join($datasource,"????????????.xml")].each { |g_file|
+    #Since team_records are done last, we can skip everything if the team file is in the log.
+    next if $log.index(g_file)
+    #Process the team file and all of its season files.
+    parse_game_file(g_file)
+  }
 end
 
 def parse_game_file file
-  
+  x = Nokogiri::XML.parse(File.read(file))
+  game_record = {}
+  game_record.store("game_id",File.basename(file,".xml"))
+  game_record.store("date",x.xpath('/gamedata/game/@date')[0].value)
+  game_record.store("day_of_week",x.xpath('/gamedata/game/@dayofweek')[0].value)
+  game_record.store("attendance",x.xpath('/gamedata/game/@attendance')[0].value)
+  game_record.store("a_team_id",x.xpath('/gamedata/game/@dayofweek')[0].value)
+  game_record.store("h_team_id",x.xpath('/gamedata/game/@attendance')[0].value)
+  game_record.store("stad_name",x.xpath('/gamedata/game/stadium/@name')[0].value)
+  game_record.store("stad_loc",x.xpath('/gamedata/game/stadium/@location')[0].value)
+  inning_records = []
+  x.xpath('/gamedata/playbyplay').children.each { |y|
+    inning_record = {"number"=>y.xpath('./@num')[0].value}
+    event_records = []
+    y.xpath('./away').children.each {|z|
+      event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
+                              "pitcher_id",z.xpath('./@pitcherid')[0].value,
+                              "balls",z.xpath('./@balls')[0].value.to_i,
+                              "strikes",z.xpath('./@strikes')[0].value.to_i,
+                              "result",z.xpath('./@result')[0].value,
+                              "pbp",z.xpath('./@pbp')[0].value,
+                              "home_score",z.xpath('./score/@homescore')[0].value.to_i,
+                              "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
+    inning_record.store("play_by_play",event_records)
+    inning_records.push(inning_record)
+  }
+  game_record.store("innings",inning_records)
+  #Append the team_record to the file.
+  $game_out.write(game_record.to_json.inspect)
+  #Finally, add the file to the log.
+  $log_file.puts(file)
 end
 
 task :make_icss do
-
+  Dir["#{path_to(:hb_config)}/*icss*"].each{ |icss|
+    sh "cp #{icss} #{path_to(:fixd_dir)}"}
 end
 
-task :run => [:parse_team_files, :make_icss]
+task :run => [:parse_team_files, :parse_game_files, :make_icss]
 
-Rake::Task[:run].invoke
+#If we've read in all of the files, we shouldn't need to do anything.
+Rake::Task[:run].invoke unless $log.size==Dir[File.join($datasource,"*")].size
 
