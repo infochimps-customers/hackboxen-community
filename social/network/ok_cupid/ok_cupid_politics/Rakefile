@@ -1,0 +1,112 @@
+INCLUDING_FILE = File.expand_path(__FILE__)
+require 'hackboxen'
+require 'net/ftp'
+#
+# When you require 'hackboxen' the library establishes where the current hackbox
+# directory is located and loads all required tasks in order for your hackbox to# run to completion
+
+task :get_ok_cupid_data do
+  #
+  # This task is intended to pull data down from a source. Examples include
+  # the web, an ftp server, and Amazon's simple storage service (s3). As much
+  # as possible this should be the only task that interacts with the 'outside'
+  # world.
+  #
+  key = WorkingConfig[:s3][:ok_cupid][:aws_access_key_id]
+  sec = WorkingConfig[:s3][:ok_cupid][:aws_secret_access_key]
+  fs = Swineherd::FileSystem.get('s3', key, sec)
+  files = fs.entries("infochimps-hackboxen/data/social/network/ok_cupid")
+  files.each { |remote_path|
+    local_path = "#{path_to(:ripd_dir)}/#{File.basename(remote_path)}"
+    remote_size = fs.size(remote_path)
+    local_size = File.exists?(local_path) ? File.size(local_path) : nil
+    if local_size == remote_size
+      puts "Already have #{remote_path}"
+    else
+      puts "#{remote_path} -> #{local_path}"
+      File.open(local_path, "w") { |fo| fo.write(fs.open(remote_path).read) }
+    end
+  }
+end
+
+def ftp
+  return @ftp_connection if @ftp_connection
+  @ftp_connection ||= Net::FTP.new(WorkingConfig['ftp']['url'])
+  @ftp_connection.login(WorkingConfig['ftp']['login'],WorkingConfig['ftp']['login'])
+  @ftp_connection.passive = true
+  @ftp_connection
+end
+
+def remote_needs_grabbing?(remote_path, local_path)
+  remote_time = ftp.mtime(remote_path, true)
+  remote_size = ftp.size(remote_path)
+  if File.exists?(local_path)
+    local_time = File.mtime(local_path)
+    local_size = File.size(local_path)
+    return false if remote_size == local_size && remote_time == local_time
+  end
+  remote_time
+end
+
+def get_zip_files(remote_path, local_path, rxp=".")
+  rx = Regexp.new(rxp)
+  dirlist = ftp.nlst(remote_path)
+  dirlist.reject! { |e| File.extname(e) != ".zip" || !rx.match(e) }
+  dirlist.each { |remote_zip_path|
+    local_zip_path = File.join(local_path, File.basename(remote_zip_path))
+    if rt=remote_needs_grabbing?(remote_zip_path, local_zip_path)
+      mkdir_p(local_path)
+      Dir["#{local_zip_path[0..-5]}*"].each { |f| File.unlink(f) }
+      puts "  ftp #{remote_zip_path} -> #{local_zip_path}"
+      ftp.getbinaryfile(remote_zip_path, local_zip_path)
+      File.utime(rt, rt, local_zip_path)
+    end
+  }
+end
+
+def unzip_files(path)
+  zipfiles = Dir[File.join(path, "**", "*.zip")]
+  zipfiles.each { |zipped_path|
+    zipdir = File.dirname(zipped_path)
+    zipfile = File.basename(zipped_path)
+    if Dir[File.join(zipdir, "#{zipfile[0..-5]}*")].length == 1
+      puts "Unzipping #{zipped_path} ..."
+      sh "cd #{zipdir} && unzip #{zipfile}"
+    end
+  }
+end
+
+task :get_shapefiles do
+  shp_dir = WorkingConfig['ftp']['shp_dir']
+  [ "CBSA/2010" ].each { |subdir|
+    remote_path = "#{shp_dir}/#{subdir}"
+    local_path = File.join(path_to(:ripd_dir), remote_path)
+    puts "Grabbing shapefiles from #{remote_path} ..."
+    get_zip_files(remote_path, local_path, "tl_2010_us")
+  }
+end
+
+task :unzip_shapefiles => :get_shapefiles do
+  unzip_files(File.join(path_to(:ripd_dir), WorkingConfig['ftp']['shp_dir']))
+end
+
+task :get_data => [:get_ok_cupid_data, :unzip_shapefiles]
+
+task :default => ['hb:create_working_config', 'hb:icss', 'hb:endpoint', :get_data, 'hb:init']
+#
+# hb:create_working_config makes establishes all required directories and
+# serializes out all configuration options into env/working_config.json. This
+# task is required.
+#
+# hb:icss copies over the icss.yaml file if it exists into its proper place in
+# fixd/data. This task is not required.
+#
+# hb:endpoint copies over the endpoint.rb file if it exists into its proper
+# place in fixd/code. This task is not required.
+#
+# :get_data is explained above. This task (and any other dependent tasks you
+# wish to write) are expected only to pull data into the ripd directory, nothing
+# more. This task is required.
+#
+# hb:init executes the main file located in engine. This task is required.
+#

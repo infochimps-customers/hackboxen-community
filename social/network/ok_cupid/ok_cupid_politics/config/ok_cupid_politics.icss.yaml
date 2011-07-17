@@ -1,0 +1,39 @@
+---
+namespace: social.network.ok_cupid
+protocol: ok_cupid_politics
+
+data_assets:
+- name: ok_cupid_politics_data_asset
+  location: ok_cupid_politics_data.tsv
+  type: ok_cupid_politics_data_record
+  
+targets:
+  catalog:
+  - name: ok_cupid_politics_catalog_entry
+    title: The display title of this catalog entry
+    description: -|
+      A very detailed description of the entry goes here. Ensure proper formatting and clear concise information about the dataset as this field will be the main visibility point of the dataset page.
+    tags:
+    - an
+    - array
+    - of
+    - single-word
+    - tags
+    packages: # You only need this if your dataset will be available for bulk download
+    - data_assets:
+      - ok_cupid_politics_data_asset
+
+# Any non-basic types declared above must be defined explicitly under this type heading
+types:
+- name: ok_cupid_politics_data_record
+  type: record
+  doc: Description of the ok_cupid_politics_data_record type
+  fields:
+  - name: A name for one of the fields in the ok_cupid_politics_data_record type
+    doc: A description for this field
+    type: If this not a primitive type, make sure you explicitly define it below
+  - name: A name for one of the fields in the ok_cupid_politics_data_record type
+    doc: A description for this field
+    type: If this not a primitive type, make sure you explicitly define it below
+    
+

@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+#
+# inputdir is the first argument your main script will get. It will ALWAYS get
+# this. inputdir will ALWAYS be a directory that contains (ripd/, rawd/, fixd/,
+# env/, and log/).
+inputdir  = ARGV[0]
+
+#
+# outputdir is the second argument your main script will get. It will ALWAYS
+# get this. outputdir will ALWAYS be the fixd/data/ directory
+outputdir = ARGV[1]
+
+#
+# Ruby example: read in the working_config.json file in env/ into a ruby hash
+# (same as a javascript associative array, a java hashmap, a python dictionary,
+# etc) called 'options' to access the configuration settings used to execute
+# the Rakefile
+require 'rubygems'
+require 'json'
+options = JSON.parse(File.read(File.join(inputdir,"env","working_config.json")))
+
+#
+# Get the paths
+require 'hackboxen'
+hb_engine = path_to(:hb_engine)
+ripd_dir = path_to(:ripd_dir)
+
+#
+# Define some classes and methods
+require 'dbf'
+class CbsaHandler < Hash
+  def initialize(dbf_path)
+    super()
+    puts "  Processing #{dbf_path} ..."
+    records = DBF::Table.new(dbf_path)
+    records.each { |record|
+      self[record.attributes["CBSAFP10"]] = record.attributes["NAMELSAD10"]
+    }
+  end
+end
+
+class StateDataEntry
+  attr_reader :country, :state, :age, :female, :answers
+  def initialize(country, state, age, female, question, ans1, ans2, ans3, ans4)
+    @country = country
+    @state = state
+    @age = age
+    @female = female
+    @answers = [ ans1.to_i, ans2.to_i, ans3.to_i, ans4.to_i ]
+  end
+end
+
+class MsaDataEntry
+  attr_reader :country, :msa, :age, :female, :answers
+  def initialize(country, msa, age, female, question, ans1, ans2, ans3, ans4)
+    @country = country
+    @msa = msa
+    @age = age
+    @female = female
+    @answers = [ ans1.to_i, ans2.to_i, ans3.to_i, ans4.to_i ]
+  end
+end
+
+def process_okcupid_file(type)
+  ripd_dir = path_to(:ripd_dir)
+  classType = Kernel.const_get("#{type.to_s.capitalize}DataEntry")
+  puts "  Processing #{type} data ..."
+  first_line = true
+  data = Array.new
+  File.foreach("#{ripd_dir}/#{type}_data.tsv") { |line|
+    if !first_line
+      line.chomp!
+      vals = line.split("\t")
+      data << classType.new(*vals)
+    end
+    first_line = false
+  }
+  data
+end
+
+#
+# Get to it
+shp_dir = WorkingConfig['ftp']['shp_dir']
+dbf_list = Dir.glob("#{ripd_dir}/#{shp_dir}/CBSA/2010/*.dbf")
+cbsa_info = CbsaHandler.new(dbf_list[0])
+state_data = process_okcupid_file(:state)
+msa_data = process_okcupid_file(:msa)
+
+puts
+p state_data[0]
+p msa_data[0]
+
+badhash = Hash.new
+good_cnt = bad_cnt = 0
+msa_data.each { |e|
+  if cbsa_info.has_key?(e.msa)
+    good_cnt += 1
+  else
+    badhash[e.msa] = 1
+    bad_cnt += 1
+  end
+}
+puts badhash.keys.join(" ")
+puts "#{bad_cnt}, #{good_cnt} of #{msa_data.length}"

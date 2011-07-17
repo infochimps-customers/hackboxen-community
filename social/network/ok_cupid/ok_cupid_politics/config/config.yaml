@@ -1,0 +1,14 @@
+---
+namespace: social.network.ok_cupid
+filesystem_scheme: file
+under_consideration: true # This flag is set to true for initial publishing, then removed when fully complete
+update_frequency: monthly # How often the data is refreshed
+requires:
+  language:
+    ruby: 1.8.7
+    gems:
+    - hackboxen: 0.0.1
+ftp:
+  url: ftp2.census.gov
+  login: anonymous
+  shp_dir: "geo/tiger/TIGER2010"
