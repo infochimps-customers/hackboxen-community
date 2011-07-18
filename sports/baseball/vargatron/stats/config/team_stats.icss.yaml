@@ -1,6 +1,7 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: team_stats
+under_consideration: true
 data_assets:
 - name: team_stats_data_asset
   location: data/team_stats_data.json
@@ -22,7 +23,8 @@ targets:
   catalog:
   - name: team_stats_catalog_entry
     title: Pennant Baseball History (1960-2010)
-    description: -|
+    description: |-
+      
       Batter up! Enter an MLB team name and in return get its team_id and a list of the years played, between 1960-2010.
 
       Partner this API with the Pennant Baseball Seasons API and get back team statistics, records, and game_ids. Use game_ids with the Pennant Baseball Game Logs API to get full at bat data.
@@ -34,7 +36,9 @@ targets:
     - baseball
     - stats
     - statistics
-    - more-tags-please
+    messages:
+    - lookup
+    
 types:
 - name: team_stats_lookup_request
   doc: Query API parameters for the team_record lookup message.
@@ -72,7 +76,7 @@ types:
   - name: sec_color_hex
     doc: The team's secondary color's hexadecimal code.
     type: string
-
+    
 - name: year_record
   type: record
   doc: A year record contains the year, the number of wins, the number of losses, and the league.
