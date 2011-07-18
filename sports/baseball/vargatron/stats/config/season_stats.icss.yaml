@@ -40,7 +40,8 @@ targets:
     - stats
     - statistics
     - more-tags-please
-
+    messages:
+    - lookup
 types:
 - name: season_stats_lookup_request
   doc: Query API parameters for the season_record lookup message.

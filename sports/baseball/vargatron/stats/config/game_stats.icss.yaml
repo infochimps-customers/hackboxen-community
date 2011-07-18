@@ -39,7 +39,8 @@ targets:
     - stats
     - statistics
     - more-tags-please
-
+    messages:
+    - lookup
 types:
 - name: game_stats_lookup_request
   doc: Query API parameters for the game_record lookup message.
