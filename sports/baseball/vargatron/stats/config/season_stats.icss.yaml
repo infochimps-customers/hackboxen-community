@@ -1,16 +1,14 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: season_stats
-
+under_consideration: true
 data_assets:
 - name: season_stats_data_asset
   location: data/season_stats_data.json
   type: season_record
-
 code_assets:
 - name: season_stats_code
   location: code/season_stats_endpoint.rb
-
 messages:
   lookup:
     response: season_record
@@ -20,13 +18,13 @@ messages:
       type: season_stats_lookup_request
     samples:
     - request:
-      - season_id: TEX2010
-
+      - team_id: TEX
+        season: 2010
 targets:
   catalog:
   - name: season_stats_catalog_entry
     title: Pennant Baseball Seasons (1960-2010)
-    description: -|
+    description: |-
       Take me out to the ball game! Get game_ids and see team season statistics like win, losses, RBIs, OBP, ERA,and many more. Get both the absolute values and percentiles related to the rest of the league. Plug the game_id into the Pennant Baseball Game Logs API to get at bat data.
 
       To find individual season statistics just enter the team_id and year. You can get the team_id and year from the Pennant Baseball History API. You can also use this API in concert with Pennant Baseball History to get a list of all available seasons and team_ids.
@@ -44,6 +42,14 @@ targets:
     - more-tags-please
 
 types:
+- name: season_stats_lookup_request
+  doc: Query API parameters for the season_record lookup message.
+  type: record
+  fields:
+  - name: team_id
+    type: string
+  - name: season
+    type: string
 - name: season_record
   type: record
   doc: All of the team's records for a specific season.

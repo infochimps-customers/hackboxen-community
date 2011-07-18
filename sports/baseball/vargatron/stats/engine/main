@@ -9,26 +9,26 @@ require 'json'
 require 'nokogiri'
 options = JSON.parse(File.read(File.join(inputdir, "env", "working_config.json")))
 
-#path_to :fixd_dir  # => "[current_dataroot]/fixd/"
-#path_to :hb_engine # => "[current_hackbox]/engine/"
 puts "-"*80
-#puts options.inspect
 $datasource = ""
 $log= []
-#These output files need to change to whatever format they actually should be.
-FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"data"))
-$team_out = File.open(File.join(path_to(:fixd_dir),"data","team_stats.tsv"),'w')
-$season_out = File.open(File.join(path_to(:fixd_dir),"data","season_stats.tsv"),'w')
-$game_out = File.open(File.join(path_to(:fixd_dir),"data","game_stats.tsv"),'w')
 
 if options["debug"]
   puts "MAIN: In debug mode: only processing the Texas Rangers."
   $datasource=File.join(path_to(:rawd_dir),"debug")
   log_file_loc = File.join(path_to(:log_dir),"debug.txt")
+  FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"debug"))
+  $team_out = File.open(File.join(path_to(:fixd_dir),"debug","team_stats.json"),'w')
+  $season_out = File.open(File.join(path_to(:fixd_dir),"debug","season_stats.json"),'w')
+  $game_out = File.open(File.join(path_to(:fixd_dir),"debug","game_stats.json"),'w')
 else
   puts "MAIN: In full mode: processing everything."
   $datasource=File.join(path_to(:rawd_dir),"flatfiles")
   log_file_loc = File.join(path_to(:log_dir),"main.txt")
+  FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"data"))
+  $team_out = File.open(File.join(path_to(:fixd_dir),"data","team_stats.json"),'w')
+  $season_out = File.open(File.join(path_to(:fixd_dir),"data","season_stats.json"),'w')
+  $game_out = File.open(File.join(path_to(:fixd_dir),"data","game_stats.json"),'w')
 end
 
 if File.exists?(log_file_loc)
@@ -112,7 +112,7 @@ def parse_team_file file
     }
     season_record.store("game_records",game_records)
     #We now have a complete season_record! Let's write it
-    $season_out.write(season_record.to_json.inspect)
+    $season_out.puts(season_record.to_json)
     #and write in the log that we finished this file.
     $log_file.puts(s_file)
   }
@@ -129,7 +129,7 @@ def parse_team_file file
   #Need to figure out if league varies from year to year.
   team_record.store("year_records",year_records)
   #Append the team_record to the file.
-  $team_out.write(team_record.to_json.inspect)
+  $team_out.puts(team_record.to_json)
   #Finally, add the file to the log.
   $log_file.puts(file)
 end
@@ -172,13 +172,13 @@ def parse_game_file file
   }
   game_record.store("innings",inning_records)
   #Append the team_record to the file.
-  $game_out.write(game_record.to_json.inspect)
+  $game_out.puts(game_record.to_json)
   #Finally, add the file to the log.
   $log_file.puts(file)
 end
 
 task :make_icss do
-  Dir["#{path_to(:hb_config)}/*icss*"].each{ |icss|
+  Dir["#{path_to(:hb_config)}/*icss.yaml"].each{ |icss|
     sh "cp #{icss} #{path_to(:fixd_dir)}"}
 end
 
