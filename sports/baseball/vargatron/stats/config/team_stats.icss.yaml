@@ -2,23 +2,27 @@
 namespace: sports.baseball.vargatron
 protocol: team_stats
 under_consideration: true
+
 data_assets:
 - name: team_stats_data_asset
   location: data/team_stats_data.json
   type: team_record
+
 code_assets:
 - name: team_stats_code
   location: code/team_stats_endpoint.rb
+
 messages:
-  lookup:
-    response: team_record
+  search:
+    response: es_response
     doc: Get a team's team_id, list of years played, W-L records, and more.
     request:
-    - name: team_stats_lookup_request
-      type: team_stats_lookup_request
+    - name: team_stats_search_request
+      type: team_stats_search_request
     samples:
     - request:
       - team_name: Rangers
+
 targets:
   catalog:
   - name: team_stats_catalog_entry
@@ -37,18 +41,43 @@ targets:
     - stats
     - statistics
     messages:
-    - lookup
+    - search
     
 types:
-- name: team_stats_lookup_request
-  doc: Query API parameters for the team_record lookup message.
+- name: team_stats_search_request
+  doc: Query API parameters for the team_record search message.
   type: record
   fields:
   - name: team_name
     type: string
+    doc: A team's name or location.
+  - name: _limit
+    type: int
+    doc: An integer limit to the number of pages returned.
+  - name: _from
+    type: int
+    doc: Integer offset to start @results@ at. A multiple of 10.
+
+- name: year_record
+  type: record
+  doc: A year record contains the year, the number of wins, the number of losses, and the league.
+  fields:
+  - name: year
+    doc: The year for this record.
+    type: int
+  - name: wins
+    doc: Number of wins this year.
+    type: int
+  - name: losses
+    doc: Number of losses this year.
+    type: int
+  - name: league
+    doc: Uppercase two-letter league identifier.
+    type: string
+
 - name: team_record
   type: record
-  doc: A team record describes a team's id, colors, years played, and record for those years, in both absolute and percentage terms. When a team switches cities, it gets a new team_record.
+  doc: A team record contains a team's id, colors, league, years played, and win-loss records for those years.
   fields:
   - name: team_id
     doc: Uppercase 3-letter team identifier. When a team moves, it gets a new id.
@@ -77,19 +106,15 @@ types:
     doc: The team's secondary color's hexadecimal code.
     type: string
     
-- name: year_record
+- name: es_response
   type: record
-  doc: A year record contains the year, the number of wins, the number of losses, and the league.
+  doc: A json object containing the total number of records that matched the search as well as an array of @results@.
   fields:
-  - name: year
-    doc: The year for this record.
-    type: int
-  - name: wins
-    doc: Number of wins this year.
-    type: int
-  - name: losses
-    doc: Number of losses this year.
-    type: int
-  - name: league
-    doc: Uppercase two-letter league identifier.
-    type: string
+    - name: total
+      type: int
+      doc: Total number of records that match @team_name@
+    - name: results
+      doc: A json array of team_records matching @team_name@
+      type:
+        type: array
+        items: team_record
