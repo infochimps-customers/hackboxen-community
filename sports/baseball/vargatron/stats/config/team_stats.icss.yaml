@@ -42,7 +42,7 @@ targets:
     messages:
     - search
 
-  elasticsearch:
+  elastic_search:
   - index_name: sports.baseball.vargatron
     object_type: team_record
     id_field: team_id
