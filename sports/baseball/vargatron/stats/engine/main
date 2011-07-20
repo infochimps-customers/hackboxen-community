@@ -22,7 +22,6 @@ if options["debug"]
   $season_out = File.open(File.join(path_to(:fixd_dir),"debug","season_stats.json"),'w')
   $game_out = File.open(File.join(path_to(:fixd_dir),"debug","game_stats.json"),'w')
 else
-  puts "MAIN: In full mode: processing everything."
   $datasource=File.join(path_to(:rawd_dir),"flatfiles")
   log_file_loc = File.join(path_to(:log_dir),"main.txt")
   FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"data"))
@@ -46,6 +45,7 @@ end
 task :parse_team_files do
   Dir[File.join($datasource,"???.xml")].each { |t_file|
     #Since team_records are done last, we can skip everything if the team file is in the log.
+    #This will cause problems if the team files update- for example, at the end of the 2011 season.
     next if $log.index(t_file)
     #Process the team file and all of its season files.
     parse_team_file(t_file)
@@ -73,29 +73,29 @@ def parse_team_file file
     season_record.store("team_name",x.xpath('/team/info/@name')[0].value)
     season_record.store("year",y.xpath('./@year')[0].value.to_i)
     season_record.store("league",y.xpath('./@league')[0].value)
-    pss = {}
     y.xpath('./postSeasonSeriesWins')[0].attributes.each{|k,v|
-      pss.store(k,v.value.to_i)}
-    season_record.store("post_season_stats",pss)
-    as = {}
+      season_record.store(k,v.value.to_i)}
     y.xpath('./teamStats')[0].attributes.each{|k,v|
       #Warning: this will work so long as any of the averages and percentages contain a decimal place, which *should* be true for every number in the dataset.
       if (v.value.index('.'))
-        as.store(k,v.value.to_f)
+        season_record.store(k,v.value.to_f)
       else
-        as.store(k,v.value.to_i)
+        season_record.store(k,v.value.to_i)
       end
     }
-    season_record.store("absolute_stats",as)
-    rs = {}
-    y.xpath('./teamStats')[0].attributes.each{|k,v|
+    y.xpath('./leagueComparison')[0].attributes.each{|k,v|
       #These should all be floats, so no warning here.
-      rs.store(k,v.value.to_f)
+      season_record.store(k+"_percentage",v.value.to_f)
     }
-    season_record.store("relative_stats",rs)
-    #Now all that's left is pulling out the list of game_ids from the season file.
+
+    #To get the league rank, we need to open up the standings file.
+    s = Nokogiri::XML.parse(File.read(File.join(path_to(:rawd_dir),"standings",season_record["year"].to_s<<".xml")))
+    season_record.store("league_rank",s.xpath('/pennant/standings/day').last.xpath(".//team[contains(@id,'#{File.basename(file,".xml")}')]")[0]["rank"].to_i)
+
+    #Now all that's left is pulling the list of game_ids from the season file.
     z = Nokogiri::XML.parse(File.read(s_file))
-    game_records=[]
+    s_game_records=[]
+    p_game_records=[]
     z.xpath('/team/games')[0].children.each{|w|
       gr = Hash["game_id",w.xpath('./@id')[0].value,
                 "date",w.xpath('./@date')[0].value,
@@ -108,10 +108,15 @@ def parse_team_file file
         gr.store("op_score",w.xpath('./results/@homescore')[0].value)
         gr.store("score",w.xpath('./results/@awayscore')[0].value)
       end
-      game_records.push(gr)
+      if w["playoffgame"]=="0"
+        s_game_records.push(gr)
+      else
+        p_game_records.push(gr)
+      end
     }
-    season_record.store("game_records",game_records)
-    #We now have a complete season_record! Let's write it
+    season_record.store("season_games",s_game_records)
+    season_record.store("postseason_games",p_game_records)
+    #We now have a complete season_record! Let's write it.
     $season_out.puts(season_record.to_json)
     #and write in the log that we finished this file.
     $log_file.puts(s_file)
@@ -150,16 +155,16 @@ def parse_game_file file
   game_record.store("date",x.xpath('/gamedata/game/@date')[0].value)
   game_record.store("day_of_week",x.xpath('/gamedata/game/@dayofweek')[0].value)
   game_record.store("attendance",x.xpath('/gamedata/game/@attendance')[0].value)
-  game_record.store("a_team_id",x.xpath('/gamedata/game/@dayofweek')[0].value)
-  game_record.store("h_team_id",x.xpath('/gamedata/game/@attendance')[0].value)
+  game_record.store("a_team_id",x.xpath('/gamedata/game/away/info/@teamID')[0].value)
+  game_record.store("h_team_id",x.xpath('/gamedata/game/home/info/@teamID')[0].value)
   game_record.store("stad_name",x.xpath('/gamedata/game/stadium/@name')[0].value)
   game_record.store("stad_loc",x.xpath('/gamedata/game/stadium/@location')[0].value)
   inning_records = []
   x.xpath('/gamedata/playbyplay').children.each { |y|
     inning_record = {"number"=>y.xpath('./@num')[0].value}
-    event_records = []
+    a_event_records = []
     y.xpath('./away').children.each {|z|
-      event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
+      a_event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
                               "pitcher_id",z.xpath('./@pitcherid')[0].value,
                               "balls",z.xpath('./@balls')[0].value.to_i,
                               "strikes",z.xpath('./@strikes')[0].value.to_i,
@@ -167,7 +172,18 @@ def parse_game_file file
                               "pbp",z.xpath('./@pbp')[0].value,
                               "home_score",z.xpath('./score/@homescore')[0].value.to_i,
                               "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
-    inning_record.store("play_by_play",event_records)
+    h_event_records=[]
+    y.xpath('./home').children.each {|z|
+      h_event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
+                              "pitcher_id",z.xpath('./@pitcherid')[0].value,
+                              "balls",z.xpath('./@balls')[0].value.to_i,
+                              "strikes",z.xpath('./@strikes')[0].value.to_i,
+                              "result",z.xpath('./@result')[0].value,
+                              "pbp",z.xpath('./@pbp')[0].value,
+                              "home_score",z.xpath('./score/@homescore')[0].value.to_i,
+                              "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
+    inning_record.store("away_pbp",a_event_records)
+    inning_record.store("home_pbp",h_event_records)
     inning_records.push(inning_record)
   }
   game_record.store("innings",inning_records)

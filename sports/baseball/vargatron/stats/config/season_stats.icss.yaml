@@ -70,63 +70,15 @@ types:
   - name: league
     doc: Uppercase two-letter league identifier.
     type: string
-  - name: post_season_stats
-    doc: Wins, losses, and [PROD what the heck is a DS?] in the postseason.
-    type: post_season_record
-  - name: absolute_stats
-    doc: 30 statistics in absolute terms.
-    type: absolute_record
-  - name: relative_stats
-    doc: 30 statistics relative to the team's league.
-    type: relative_record
-  - name: game_records
-    doc: List of all games played this season, including game_ids, dates, score, opponent's score, and result. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
-    type:
-      type: array
-      items: game_record
-
-- name: game_record
-  type: record
-  doc: The game_id, date, score, opponent's score, and result for a specific game. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
-  fields:
-  - name: game_id
-    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
-    type: string
-  - name: date
-    doc: The date of the game. The date's format is "BBBBCCDD". BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day.
-    type: string
-  - name: op_id
-    doc: The three-letter uppercase id for the opposing team.
-    type: string
-  - name: score
-    doc: The number of points this team scored.
-    type: int
-  - name: op_score
-    doc: The number of points the other team scored.
-    type: int
-  - name: result
-    doc: Whether the game was a win ("W") or a loss ("L").
-    type: string
-
-- name: post_season_record
-  type: record
-  doc: Stats from the post-season.
-  fields:
   - name: DS
-    doc: PROD No clue.
+    doc: PROD Division wins?
     type: int
   - name: LS
-    doc: PROD Losses?
+    doc: PROD League wins?
     type: int
   - name: WS
-    doc: PROD Wins?
+    doc: PROD World Series wins?
     type: int
-
-
-- name: absolute_record
-  type: record
-  doc: Stats from the season in absolute terms.
-  fields:
   - name: W
     doc: Total wins this season.
     type: int
@@ -217,98 +169,129 @@ types:
   - name: FP
     doc: Total fielding percentage this season.
     type: float
-
-- name: relative_record
-  type: record
-  doc: Stats from the season relative to the team's league. Every number is a percentile ranking.
-  fields:
-  - name: W
+  - name: W_percentage
     doc: League percentile for wins this season.
     type: float
-  - name: L
+  - name: L_percentage
     doc: League percentile for losses this season.
     type: float
-  - name: R
+  - name: R_percentage
     doc: League percentile for runs this season.
     type: float
-  - name: AB
+  - name: AB_percentage
     doc: League percentile for at-bats this season.
     type: float
-  - name: BA
+  - name: BA_percentage
     doc: League percentile for batting average this season.
     type: float
-  - name: OBP
+  - name: OBP_percentage
     doc: League percentile for on base percentage this season.
     type: float
-  - name: H
+  - name: H_percentage
     doc: League percentile for hits this season.
     type: float
-  - name: DBL
+  - name: DBL_percentage
     doc: League percentile for doubles this season.
     type: float
-  - name: TPL
+  - name: TPL_percentage
     doc: League percentile for triples this season.
     type: float
-  - name: HR
+  - name: HR_percentage
     doc: League percentile for home runs this season.
     type: float
-  - name: BB
+  - name: BB_percentage
     doc: League percentile for walks this season.
     type: float
-  - name: SB
+  - name: SB_percentage
     doc: League percentile for stolen bases this season.
     type: float
-  - name: SO
+  - name: SO_percentage
     doc: League percentile for strikeouts this season.
     type: float
-  - name: CS
+  - name: CS_percentage
     doc: League percentile for caught stealing this season.
     type: float
-  - name: HBP
+  - name: HBP_percentage
     doc: League percentile for hit by pitcher this season.
     type: float
-  - name: SF
+  - name: SF_percentage
     doc: League percentile for sacrifice flies this season.
     type: float
-  - name: RA
+  - name: RA_percentage
     doc: League percentile for PROD this season.
     type: float
-  - name: ER
+  - name: ER_percentage
     doc: League percentile for PROD this season.
     type: float
-  - name: ERA
+  - name: ERA_percentage
     doc: League percentile for earned run average this season.
     type: float
-  - name: CG
+  - name: CG_percentage
     doc: League percentile for complete games this season.
     type: float
-  - name: SHO
+  - name: SHO_percentage
     doc: League percentile for shutouts this season.
     type: float
-  - name: SV
+  - name: SV_percentage
     doc: League percentile for saves this season.
     type: float
-  - name: IPouts
+  - name: IPouts_percentage
     doc: League percentile for PROD this season.
     type: float
-  - name: HA
+  - name: HA_percentage
     doc: League percentile for hits against this season.
     type: float
-  - name: HRA
+  - name: HRA_percentage
     doc: League percentile for home runs against this season.
     type: float
-  - name: BBA
+  - name: BBA_percentage
     doc: League percentile for walks against this season.
     type: float
-  - name: SOA
+  - name: SOA_percentage
     doc: League percentile for strikeouts against this season.
     type: float
-  - name: E
+  - name: E_percentage
     doc: League percentile for errors this season.
     type: float
-  - name: DP
+  - name: DP_percentage
     doc: League percentile for PROD this season.
     type: float
-  - name: FP
+  - name: FP_percentage
     doc: League percentile for fielding percentage this season.
     type: float
+  - name: league_rank
+    doc: League rank at the end of the season.
+    type: int
+  - name: season_games
+    doc: List of all games played this season, including game_ids, dates, score, opponent's score, and result. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
+    type:
+      type: array
+      items: game_record
+  - name: postseason_games
+    doc: List of all games played during the postseason, including game_ids, dates, score, opponent's score, and result. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
+    type:
+      type: array
+      items: game_record
+
+- name: game_record
+  type: record
+  doc: The game_id, date, score, opponent's score, and result for a specific game. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
+  fields:
+  - name: game_id
+    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
+    type: string
+  - name: date
+    doc: The date of the game. The date's format is "BBBBCCDD". BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day.
+    type: string
+  - name: op_id
+    doc: The three-letter uppercase id for the opposing team.
+    type: string
+  - name: score
+    doc: The number of points this team scored.
+    type: int
+  - name: op_score
+    doc: The number of points the other team scored.
+    type: int
+  - name: result
+    doc: Whether the game was a win ("W") or a loss ("L").
+    type: string

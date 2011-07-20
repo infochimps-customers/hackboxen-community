@@ -1,34 +1,20 @@
 require 'hackboxen'
 
-#path_to(:ripd_dir)
-#debug_mode
-
-#
-# When you require 'hackboxen' the library establishes where the current hackbox directory
-# is located and loads all required tasks in order for your hackbox to run to completion
-#
-
 task :get_data do
+  fs = Swineherd::FileSystem.get(:s3,WorkingConfig[:s3_filesystem][:access_key],WorkingConfig[:s3_filesystem][:secret_key])
   if WorkingConfig[:debug]
     puts "RAKE: In debug mode: only processing the Texas Rangers."
-    fs = Swineherd::FileSystem.get(:s3,WorkingConfig[:s3_filesystem][:access_key],WorkingConfig[:s3_filesystem][:secret_key])
     fs.copy_to_local(WorkingConfig[:s3_debug],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug])))
     sh "unzip -n #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_debug]))} -d #{path_to(:rawd_dir)}"
   else
-    fs = Swineherd::FileSystem.get(:s3,WorkingConfig[:s3_filesystem][:access_key],WorkingConfig[:s3_filesystem][:secret_key])
     fs.copy_to_local(WorkingConfig[:s3_loc_1],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1])))
-    #fs.copy_to_local(WorkingConfig[:s3_loc_2],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2])))
     #Not sure the second file is actually necessary.
     #Now, unzip the files we pulled. This'll take a while.
     sh "tar xkvfz #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_1]))} -C #{path_to(:rawd_dir)}" unless Dir[File.join(path_to(:rawd_dir),"flatfiles")<<"/*"].size>=116190
-  end
-  
-  # fs.put
-  # This task is intended to pull data down from a source. Examples include
-  # the web, an ftp server, and Amazon's simple storage service (s3). As much
-  # as possible this should be the only task that interacts with the 'outside'
-  # world.
-  #
+  end  
+  #Both debug and main mode need the full standings files.
+  fs.copy_to_local(WorkingConfig[:s3_loc_2],File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2]))) unless File.exists?(File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2])))
+  sh "unzip -n #{File.join(path_to(:ripd_dir),File.basename(WorkingConfig[:s3_loc_2]))} -d #{path_to(:rawd_dir)}"
 end
 
 task :default => ['hb:create_working_config', 'hb:icss', 'hb:endpoint', :get_data, 'hb:init']

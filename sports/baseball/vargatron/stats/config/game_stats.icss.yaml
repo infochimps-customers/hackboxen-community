@@ -89,7 +89,12 @@ types:
   - name: number
     doc: The number of the inning.
     type: int
-  - name: play_by_play
+  - name: away_pbp
+    doc: All the events that occurred during this inning.
+    type:
+      type: array
+      items: event_record
+  - name: home_pbp
     doc: All the events that occurred during this inning.
     type:
       type: array
