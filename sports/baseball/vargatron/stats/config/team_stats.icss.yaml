@@ -24,17 +24,16 @@ messages:
       - team_name: Rangers
 
 targets:
+
   catalog:
   - name: team_stats_catalog_entry
-    title: Pennant Baseball History (1960-2010)
+    title: Pennant Baseball History (1952-2010)
     description: |-
       
       Batter up! Enter an MLB team name and in return get its team_id and a list of the years played, between 1960-2010.
 
-      Partner this API with the Pennant Baseball Seasons API and get back team statistics, records, and game_ids. Use game_ids with the Pennant Baseball Game Logs API to get full at bat data.
+      Partner this API with the Pennant Baseball Seasons API and get back team statistics, records, and game_ids. Use game_ids with the Pennant Baseball Game Logs API to get full at-bat data.
 
-      The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up. Brass Monkey allows you to try out the data for free up to the 5,000 call limit.
-      Note that while Pennant's Baseball History is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
     tags:
     - sports
     - baseball
@@ -42,6 +41,14 @@ targets:
     - statistics
     messages:
     - search
+
+  elasticsearch:
+  - index_name: sports.baseball.vargatron
+    object_type: team_record
+    id_field: team_id
+    loader: json_loader
+    data_assets:
+    - team_stats_data_asset 
     
 types:
 - name: team_stats_search_request
