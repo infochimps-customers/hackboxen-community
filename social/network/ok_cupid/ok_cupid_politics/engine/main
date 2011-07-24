@@ -162,8 +162,11 @@ h_msa = calc_msa_stats(msa_data, cbsa_info)
 #
 # Write out results
 File.open("#{data_dir}/responses_by_state_3.tsv", "w") { |f|
+  f.puts "country\tstate\tage\tgender\tn_ans1\tn_ans2\tn_ans3\tn_ans4"
   h_state.each { |k,v| f.puts "#{k}\t#{v.join("\t")}" }
 }
 File.open("#{data_dir}/responses_by_msa_3.tsv", "w") { |f|
+  f.puts "country\tmsa/city\tage\tgender\tn_ans1\tn_ans2\tn_ans3\tn_ans4"
   h_msa.each { |k,v| f.puts "#{k}\t#{v.join("\t")}" }
 }
+puts "finished"
