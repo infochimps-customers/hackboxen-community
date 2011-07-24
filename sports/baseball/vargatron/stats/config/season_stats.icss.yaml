@@ -43,6 +43,7 @@ targets:
     messages:
     - lookup
 types:
+
 - name: season_stats_lookup_request
   doc: Query API parameters for the season_record lookup message.
   type: record
@@ -51,6 +52,7 @@ types:
     type: string
   - name: season
     type: string
+
 - name: season_record
   type: record
   doc: All of the team's records for a specific season.
