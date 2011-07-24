@@ -46,7 +46,7 @@ class StateDataEntry
     @country = country
     @state = state
     @age = age
-    @female = female
+    @female = (female == "1") ? "F" : "M"
     @question = question.to_i
     @answers = [ ans1.to_i, ans2.to_i, ans3.to_i, ans4.to_i ]
   end
@@ -58,7 +58,7 @@ class MsaDataEntry
     @country = country
     @msa = msa
     @age = age
-    @female = female
+    @female = (female == "1") ? "F" : "M"
     @question = question.to_i
     @answers = [ ans1.to_i, ans2.to_i, ans3.to_i, ans4.to_i ]
   end
@@ -85,10 +85,10 @@ def calc_state_stats(state_data)
   hash = Hash.new { |h,k| h[k] = Array.new(4, 0) }
   state_data.each { |e|
     next if e.question != 3
-    [ "NULL", e.state ].each { |state|
-      [ "NULL", e.age ].each { |age|
-        [ "NULL", e.female ].each { |female|
-          key = "#{e.question}-#{e.country}-#{state}-#{age}-#{female}"
+    [ "All States", e.state ].each { |state|
+      [ "All Ages", e.age ].each { |age|
+        [ "Both", e.female ].each { |female|
+          key = "#{e.country}\t#{state}\t#{age}\t#{female}"
           hash[key][0] += e.answers[0]
           hash[key][1] += e.answers[1]
           hash[key][2] += e.answers[2]
@@ -100,18 +100,27 @@ def calc_state_stats(state_data)
   hash
 end
 
-def calc_msa_stats(msa_data)
+def calc_msa_stats(msa_data, cbsa_info)
   hash = Hash.new { |h,k| h[k] = Array.new(4, 0) }
   msa_data.each { |e|
     next if e.question != 3
-    [ "NULL", e.msa ].each { |msa|
-      [ "NULL", e.age ].each { |age|
-        [ "NULL", e.female ].each { |female|
-          key = "#{e.question}-#{e.country}-#{msa}-#{age}-#{female}"
+    [ "All MSAs", e.msa ].each { |msa|
+      [ "All Ages", e.age ].each { |age|
+        [ "Both", e.female ].each { |female|
+          key = "#{e.country}\t#{msa}\t#{age}\t#{female}"
           hash[key][0] += e.answers[0]
           hash[key][1] += e.answers[1]
           hash[key][2] += e.answers[2]
           hash[key][3] += e.answers[3]
+
+          if cbsa_info.has_key?(msa)
+            city = cbsa_info[msa]
+            key = "#{e.country}\t#{city}\t#{age}\t#{female}"
+            hash[key][0] += e.answers[0]
+            hash[key][1] += e.answers[1]
+            hash[key][2] += e.answers[2]
+            hash[key][3] += e.answers[3]
+          end
         }
       }
     }
@@ -120,7 +129,7 @@ def calc_msa_stats(msa_data)
 end
 
 #
-# Get to it
+# Ingest data
 shp_dir = WorkingConfig['ftp']['shp_dir']
 dbf_list = Dir.glob("#{ripd_dir}/#{shp_dir}/CBSA/2010/*.dbf")
 cbsa_info = CbsaHandler.new(dbf_list[0])
@@ -145,9 +154,16 @@ if msa_data
   puts "  Un-mapped MSAs: #{badhash.keys.join(" ")}"
 end
 
+#
+# Process data
 h_state = calc_state_stats(state_data)
-h_msa = calc_msa_stats(msa_data)
-File.open("#{data_dir}/ok_cupid.tsv", "w") { |f|
+h_msa = calc_msa_stats(msa_data, cbsa_info)
+
+#
+# Write out results
+File.open("#{data_dir}/responses_by_state_3.tsv", "w") { |f|
   h_state.each { |k,v| f.puts "#{k}\t#{v.join("\t")}" }
+}
+File.open("#{data_dir}/responses_by_msa_3.tsv", "w") { |f|
   h_msa.each { |k,v| f.puts "#{k}\t#{v.join("\t")}" }
 }

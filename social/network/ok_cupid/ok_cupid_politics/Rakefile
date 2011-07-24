@@ -12,8 +12,8 @@ task :get_ok_cupid_data do
   # as possible this should be the only task that interacts with the 'outside'
   # world.
   #
-  key = WorkingConfig[:s3][:ok_cupid][:aws_access_key_id]
-  sec = WorkingConfig[:s3][:ok_cupid][:aws_secret_access_key]
+  key = WorkingConfig[:s3_filesystem][:access_key]
+  sec = WorkingConfig[:s3_filesystem][:secret_key]
   fs = Swineherd::FileSystem.get('s3', key, sec)
   files = fs.entries("infochimps-hackboxen/data/social/network/ok_cupid")
   files.each { |remote_path|
