@@ -5,7 +5,7 @@ under_consideration: true
 
 data_assets:
 - name: team_stats_data_asset
-  location: data/team_stats_data.json
+  location: data/team_stats.json
   type: team_record
 
 code_assets:
@@ -69,18 +69,24 @@ types:
   type: record
   doc: A year record contains the year, the number of wins, the number of losses, and the league.
   fields:
-  - name: year
-    doc: The year for this record.
+  - name: season
+    doc: The year for this season.
     type: int
   - name: wins
-    doc: Number of wins this year.
+    doc: Number of wins this season.
     type: int
   - name: losses
-    doc: Number of losses this year.
+    doc: Number of losses this season.
     type: int
-  - name: league
-    doc: Uppercase two-letter league identifier.
-    type: string
+  - name: division_series
+    doc: PROD 1 if the team won its division series this year, 0 if not.
+    type: int
+  - name: league_rank
+    doc: This team's ranking out of its league for this season.
+    type: int
+  - name: division_rank
+    doc: This team's ranking out of its division for this season.
+    type: int
 
 - name: team_record
   type: record
@@ -89,29 +95,38 @@ types:
   - name: team_id
     doc: Uppercase 3-letter team identifier. When a team moves, it gets a new id.
     type: string
-  - name: team_loc
+  - name: team_location
     doc: The team location, generally a city or state.
     type: string
   - name: team_name 
     doc: The team's name.
     type: string
-  - name: year_records
-    doc: A list of all the years that the team played, with wins, losses, and league for each year.
+  - name: primary_color
+    doc: The team's primary color's name.
+    type: string
+  - name: secondary_color
+    doc: The team's secondary color's name.
+    type: string
+  - name: primary_color_hex
+    doc: The team's primary color's hexadecimal code.
+    type: string
+  - name: secondary_color_hex
+    doc: The team's secondary color's hexadecimal code.
+    type: string
+  - name: home_stadium
+    doc: The team's home stadium during its most recent season. Previous stadiums can be found using the Pennant Baseball Seasons API.
+    type: string
+  - name: league
+    doc: The team's two-letter uppercase league identifier for its most recent season.
+    type: string
+  - name: division
+    doc: The team's one-letter uppercase division identifier for its most recent season.
+    type: string
+  - name: seasons
+    doc: A list of all the years that the team played, with wins, losses, division series, division rank, and league rank for each year.
     type:
       type: array
       items: year_record
-  - name: pri_color
-    doc: The team's primary color's name.
-    type: string
-  - name: sec_color
-    doc: The team's secondary color's name.
-    type: string
-  - name: pri_color_hex
-    doc: The team's primary color's hexadecimal code.
-    type: string
-  - name: sec_color_hex
-    doc: The team's secondary color's hexadecimal code.
-    type: string
     
 - name: es_response
   type: record

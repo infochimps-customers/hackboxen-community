@@ -4,7 +4,7 @@ protocol: game_stats
 under_consideration: true
 data_assets:
 - name: game_stats_data_asset
-  location: data/game_stats_data.json
+  location: data/game_stats.json
   type: game_record
 code_assets:
 - name: game_stats_code
@@ -53,34 +53,76 @@ types:
   doc: Complete information about a specific game.
   fields:
   - name: game_id
-    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
+    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is 0 for most games, 1 for the first game of a double-header, and 2 for the second game of a double-header.
     type: string
   - name: date
     doc: The date of the game. The date's format is "BBBBCCDD". BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day.
     type: string
-  - name: day_of_week
+  - name: day_of_the_week
     doc: What day of the week the game fell on.
     type: string
   - name: attendance
     doc: The number of fans in attendence at the stadium.
     type: string
-  - name: a_team_id
-    doc: The away team's team id- a three-letter uppercase string.
-    type: string
-  - name: h_team_id
-    doc: The home team's team id- a three-letter uppercase string.
-    type: string
-  - name: stad_name
+  - name: stadium
     doc: The name of the stadium where the game occurred.
     type: string
-  - name: stad_loc
+  - name: location
     doc: The location of the stadium where the game occurred.
     type: string
+  - name: home_team_stats
+    doc: This game's stats for the home team.
+    type: team_record
+  - name: away_team_stats
+    doc: This game's stats for the away team.
+    type: team_record
   - name: innings
     doc: Play-by-play for the game, broken into innings.
     type:
       type: array
       items: inning_record
+
+- name: team_record
+  type: record
+  doc: The record for one team, including stats at the end of the game and a list of players who played this game.
+  fields:
+  - name: team_id
+    doc: The three-letter uppercase identifier for this team.
+    type: string  
+  - name: team_name 
+    doc: The team's name.
+    type: string
+  - name: team_location
+    doc: The team location, generally a city or state.
+    type: string
+  - name: league_rank
+    doc: The team's rank in their league after this game.
+    type: int
+  - name: division_rank
+    doc: The team's rank in their division after this game.
+    type: int
+  - name: runs
+    doc: The number of runs the team scored during this game.
+    type: int
+  - name: hits
+    doc: The number of hits the team scored during this game.
+    type: int
+  - name: errors
+    doc: The number of errors the team made during this game.
+    type: int
+  - name: left_on_base
+    doc: The number of players left on base during this game.
+    type: int
+  - name: pitching 
+    doc: The list of pitchers that played for this team this game.
+    type: 
+      type: array
+      items: pitcher_record
+  - name: batting
+    doc: The list of batters that played for this team this game.
+    type: 
+      type: array
+      items: batter_record
 
 - name: inning_record
   type: record
@@ -89,12 +131,12 @@ types:
   - name: number
     doc: The number of the inning.
     type: int
-  - name: away_pbp
+  - name: home_play_by_play
     doc: All the events that occurred during this inning.
     type:
       type: array
       items: event_record
-  - name: home_pbp
+  - name: away_play_by_play
     doc: All the events that occurred during this inning.
     type:
       type: array
@@ -105,10 +147,10 @@ types:
   doc: The description of a specific event during the game.
   fields:
   - name: player_id
-    doc: The id of the player who was at bat. The format is XXXXYZZZ, where XXXX is the first four letters of the player's last name, Y is the player's first initial, and ZZZ is to differentiate between players with similar names. For most players, it'll be 001.
+    doc: The id of the player who was at bat. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
     type: string
   - name: pitcher_id
-    doc: The id of the player who was at bat. The format is XXXXYZZZ, where XXXX is the first four letters of the player's last name, Y is the player's first initial, and ZZZ is to differentiate between players with similar names. For most players, it'll be 001.
+    doc: The id of the player who was pitching. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
     type: string
   - name: balls
     doc: The number of balls during this event.
@@ -119,7 +161,7 @@ types:
   - name: result
     doc: The result of this event, in a string.
     type: string
-  - name: pbp
+  - name: description
     doc: A description of this event, including full player names.
     type: string
   - name: home_score
@@ -127,4 +169,56 @@ types:
     type: int
   - name: away_score
     doc: The away team's score after this event.
+    type: int
+
+- name: pitcher_record
+  doc: The details for a particular pitcher, including player_id, name, batters faced, hits, walks, and rbi.
+  type: record
+  fields:
+  - name: player_id 
+    doc: An 8-character string that identifies this player uniquely. The format is "aaaabXXX", where aaaa is the first four letters of the player's last name, b is the first letter of the player's first name, and XXX is a number to distinguish this player from other players with the same first initial and first four letters of their last name.
+    type: string
+  - name: first_name
+    doc: The player's first name.
+    type: string
+  - name: last_name
+    doc: The player's last name.
+    type: string
+  - name: batters_faced
+    doc: Batters faced this game.
+    type: int
+  - name: hits
+    doc: Hits this game.
+    type: int
+  - name: walks
+    doc: Walks this game.
+    type: int
+  - name: rbi
+    doc: Runs batted in for this game.
+    type: int
+
+- name: batter_record
+  doc: The details for a particular batter, including player_id, name, at bats, hits, walks, and rbi.
+  type: record
+  fields:
+  - name: player_id 
+    doc: An 8-character string that identifies this player uniquely. The format is "aaaabXXX", where aaaa is the first four letters of the player's last name, b is the first letter of the player's first name, and XXX is a number to distinguish this player from other players with the same first initial and first four letters of their last name.
+    type: string
+  - name: first_name
+    doc: The player's first name.
+    type: string
+  - name: last_name
+    doc: The player's last name.
+    type: string
+  - name: at_bat
+    doc: At bats this game.
+    type: int
+  - name: hits
+    doc: Hits this game.
+    type: int
+  - name: walks
+    doc: Walks this game.
+    type: int
+  - name: rbi
+    doc: Runs batted in for this game.
     type: int
