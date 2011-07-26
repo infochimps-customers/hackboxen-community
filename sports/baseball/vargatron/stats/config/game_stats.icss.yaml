@@ -61,6 +61,9 @@ types:
   - name: day_of_the_week
     doc: What day of the week the game fell on.
     type: string
+  - name: start_time
+    doc: When the game started, in local time.
+    type: string
   - name: attendance
     doc: The number of fans in attendence at the stadium.
     type: string

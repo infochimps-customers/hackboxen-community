@@ -19,6 +19,7 @@ if options["debug"]
 else
   $datasource=File.join(path_to(:rawd_dir),"flatfiles")
 end
+$last_year=Dir[File.join(path_to(:rawd_dir),"standings","*")].sort[-1][-8..-5].to_i
 log_file_loc = File.join(path_to(:log_dir),"log.txt")
 FileUtils.mkdir_p(File.join(path_to(:fixd_dir),"data"))
 $team_out = File.open(File.join(path_to(:fixd_dir),"data","team_stats.json"),'w')
@@ -41,7 +42,7 @@ task :parse_team_files do
   Dir[File.join($datasource,"???.xml")].each { |t_file|
     #Since team_records are done last, we can skip everything if the team file is in the log.
     #This will cause problems if the team files update- for example, at the end of the 2011 season.
-    next if $log.index(t_file)
+    next if $log.index(File.basename(t_file))
     #Process the team file and all of its season files.
     parse_team_file(t_file)
   }
@@ -70,13 +71,13 @@ def parse_team_file t_file
                            "division_series",y.xpath('./postSeasonSeriesWins/@DS')[0].value.to_i])
     #Now, create the season_record if we haven't done this one.
     s_file=t_file.gsub(/\.xml\z/,year_records.last["season"].to_s<<".xml")
-    next if $log.index(s_file)
+    next if $log.index(File.basename(s_file))
     season_record = {}
     season_record.merge!(team_record)
     season_record.store("season",y.xpath('./@year')[0].value.to_i)
     season_record.store("league",y.xpath('./@league')[0].value)
-    #League changes for one team, and so we should store only the last year's season. This hardcoding will need to change in 2011.
-    team_record.store("league",season_record["league"]) if season_record["season"]==2010
+    #League changes for one team, and so we should store only the last year's season.
+    team_record.store("league",season_record["league"]) if season_record["season"]==$last_year
     y.xpath('./postSeasonSeriesWins')[0].attributes.each{|k,v|
       season_record.store(k,v.value.to_i)}
     y.xpath('./teamStats')[0].attributes.each{|k,v|
@@ -94,11 +95,17 @@ def parse_team_file t_file
     
     #Division, league rank, and division rank all need to be pulled out of the standings file for this season.
     s = Nokogiri::XML.parse(File.read(File.join(path_to(:rawd_dir),"standings",season_record["season"].to_s << ".xml")))
-    season_record.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2]["rank"].to_i)
-    season_record.store("division_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
-    season_record.store("division",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1].parent.name)
+    #Divisions only exist from 1969 onward.
+    if season_record["season"]>1968
+      season_record.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2]["rank"].to_i)
+      season_record.store("division_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
+      season_record.store("division",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1].parent.name)
+      team_record.store("division",season_record["division"]) if season_record["season"]==$last_year
+      year_records.last.store("division_rank",season_record["division_rank"])
+    else
+      season_record.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
+    end
     year_records.last.store("league_rank",season_record["league_rank"])
-    year_records.last.store("division_rank",season_record["division_rank"])
     #Now all that's left for the season_record is pulling the list of game_ids from the season file.
     z = Nokogiri::XML.parse(File.read(s_file))
     s_game_records=[]
@@ -124,19 +131,20 @@ def parse_team_file t_file
       #Now is actually the best time to parse the game files, since we've got both the relevant season and standing fields open, in z and s.
       #Since each game file has two participants, only parse home games.
       g_file = File.join($datasource,game_id+".xml")
-      if gr["game_type"]=="home" and !$log.index(g_file)
+      if gr["game_type"]=="home" and !$log.index(File.basename(g_file))
         g = Nokogiri::XML.parse(File.read(g_file))
         game_record = {}
         game_record.store("game_id",game_id)
         game_record.store("date",g.xpath('/gamedata/game/@date')[0].value)
         game_record.store("day_of_the_week",g.xpath('/gamedata/game/@dayofweek')[0].value)
         game_record.store("attendance",g.xpath('/gamedata/game/@attendance')[0].value.to_i)
-        game_record.store("location",g.xpath('/gamedata/game/stadium/@location')[0].value)
-        #The start time has been dropped; left just in case.
-        #game_record.store("start_time",w["starttime"].insert(1,":") << " PM"))
+        game_record.store("location",g.xpath('/gamedata/game/stadium/@location')[0].value.gsub(/,([A-Z]{2})/,', \1'))
+        #The start time needs to be processed.
+        game_record.store("start_time",w["starttime"].insert(1,":") << " PM")
         #The stadium name needs to be processed.
         stadium=g.xpath('/gamedata/game/stadium/@name')[0].value.gsub(/ \(P.*\)/,'')
-        stadium << " in " << game_record["location"] unless stadium.index(game_record["location"])
+        city = game_record["location"].gsub(/, [A-Z]{2}/,'')
+        stadium << " in " << city unless stadium.index(city)
         game_record.store("stadium",stadium)
         season_record.store("home_stadium",stadium) unless season_record["home_stadium"]
         #Process the home team's stats.
@@ -148,11 +156,15 @@ def parse_team_file t_file
         ranks=s.xpath("//day[contains(@date,'#{game_record['date']}')]//team[contains(@id,'#{home_record['team_id']}')]")
         if ranks[0]
           home_record.store("league_rank",ranks[0]["rank"].to_i)
-          home_record.store("division_rank",ranks[1]["rank"].to_i)
+          home_record.store("division_rank",ranks[1]["rank"].to_i) if ranks[1]
         else
           #This is a postseason game.
-          home_record.store("league_rank",s.xpath("//team[contains(@id,'#{home_record['team_id']}')]")[-2]["rank"].to_i)
-          home_record.store("division_rank",s.xpath("//team[contains(@id,'#{home_record['team_id']}')]")[-1]["rank"].to_i)
+          if season_record["season"]>1968
+            home_record.store("league_rank",s.xpath("//team[contains(@id,'#{home_record['team_id']}')]")[-2]["rank"].to_i)
+            home_record.store("division_rank",s.xpath("//team[contains(@id,'#{home_record['team_id']}')]")[-1]["rank"].to_i)
+          else
+            home_record.store("league_rank",s.xpath("//team[contains(@id,'#{home_record['team_id']}')]")[-1]["rank"].to_i)
+          end
         end
         home_record.store("runs",g.xpath('/gamedata/game/home/@runs')[0].value.to_i)
         home_record.store("hits",g.xpath('/gamedata/game/home/@hits')[0].value.to_i)
@@ -188,11 +200,15 @@ def parse_team_file t_file
         ranks=s.xpath("//day[contains(@date,'#{game_record['date']}')]//team[contains(@id,'#{away_record['team_id']}')]")
         if ranks[0]
           away_record.store("league_rank",ranks[0]["rank"].to_i)
-          away_record.store("division_rank",ranks[1]["rank"].to_i)
+          away_record.store("division_rank",ranks[1]["rank"].to_i) if ranks[1]
         else
           #This is a postseason game.
-          away_record.store("league_rank",s.xpath("//team[contains(@id,'#{away_record['team_id']}')]")[-2]["rank"].to_i)
-          away_record.store("division_rank",s.xpath("//team[contains(@id,'#{away_record['team_id']}')]")[-1]["rank"].to_i)
+          if season_record["season"]>1968
+            away_record.store("league_rank",s.xpath("//team[contains(@id,'#{away_record['team_id']}')]")[-2]["rank"].to_i)
+            away_record.store("division_rank",s.xpath("//team[contains(@id,'#{away_record['team_id']}')]")[-1]["rank"].to_i)
+          else
+            away_record.store("league_rank",s.xpath("//team[contains(@id,'#{away_record['team_id']}')]")[-1]["rank"].to_i)
+          end
         end
         away_record.store("runs",g.xpath('/gamedata/game/away/@runs')[0].value.to_i)
         away_record.store("hits",g.xpath('/gamedata/game/away/@hits')[0].value.to_i)
@@ -226,13 +242,13 @@ def parse_team_file t_file
           a_event_records = []
           y.xpath('./away').children.each {|z|
             a_event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
-                                "pitcher_id",z.xpath('./@pitcherid')[0].value,
-                                "balls",z.xpath('./@balls')[0].value.to_i,
-                                "strikes",z.xpath('./@strikes')[0].value.to_i,
-                                "result",z.xpath('./@result')[0].value,
-                                "description",z.xpath('./@pbp')[0].value,
-                                "home_score",z.xpath('./score/@homescore')[0].value.to_i,
-                                "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
+                                      "pitcher_id",z.xpath('./@pitcherid')[0].value,
+                                      "balls",z.xpath('./@balls')[0].value.to_i,
+                                      "strikes",z.xpath('./@strikes')[0].value.to_i,
+                                      "result",z.xpath('./@result')[0].value,
+                                      "description",z.xpath('./@pbp')[0].value,
+                                      "home_score",z.xpath('./score/@homescore')[0].value.to_i,
+                                      "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
           h_event_records=[]
           y.xpath('./home').children.each {|z|
             h_event_records.push(Hash["player_id",z.xpath('./@playerid')[0].value,
@@ -240,7 +256,7 @@ def parse_team_file t_file
                                       "balls",z.xpath('./@balls')[0].value.to_i,
                                       "strikes",z.xpath('./@strikes')[0].value.to_i,
                                       "result",z.xpath('./@result')[0].value,
-                                      "pbp",z.xpath('./@pbp')[0].value,
+                                      "description",z.xpath('./@pbp')[0].value,
                                       "home_score",z.xpath('./score/@homescore')[0].value.to_i,
                                       "away_score",z.xpath('./score/@awayscore')[0].value.to_i])}
           inning_record.store("away_play_by_play",a_event_records)
@@ -251,25 +267,23 @@ def parse_team_file t_file
         #Append the team_record to the file.
         $game_out.puts(game_record.to_json)
         #Finally, add the file to the log.
-        $log_file.puts(g_file)
+        $log_file.puts(File.basename(g_file))
       end  
     }
-    #The team_record will be missing its home_stadium entry if the 2010 season file is written and then the program halts before writing the team_record file. This case seems unlikely enough that I'm not going to check for it.
-    team_record.store("home_stadium",season_record["home_stadium"]) if season_record["season"]==2010
+    #The team_record will be missing its home_stadium entry if the last season file is written and then the program halts before writing the team_record file. This case seems unlikely enough that I'm not going to check for it.
+    team_record.store("home_stadium",season_record["home_stadium"]) if season_record["season"]==$last_year
     season_record.store("regular_season_games",s_game_records)
     season_record.store("post_season_games",p_game_records)
     #We now have a complete season_record! Let's write it.
     $season_out.puts(season_record.to_json)
     #and write in the log that we finished this file.
-    $log_file.puts(s_file)
+    $log_file.puts(File.basename(s_file))
   }
-  #team_record.store("league",x.xpath('/team/info/@teamID')[0].value)
-  #Need to figure out if league varies from year to year.
   team_record.store("seasons",year_records)
   #Append the team_record to the file.
   $team_out.puts(team_record.to_json)
   #Finally, add the file to the log.
-  $log_file.puts(t_file)
+  $log_file.puts(File.basename(t_file))
   puts "Finished processing all files associated with #{team_record["team_id"]}."
 end
 
