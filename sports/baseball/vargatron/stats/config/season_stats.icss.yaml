@@ -1,14 +1,16 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: season_stats
-under_consideration: true
+
 data_assets:
 - name: season_stats_data_asset
   location: data/season_stats.json
   type: season_record
+
 code_assets:
 - name: season_stats_code
   location: code/season_stats_endpoint.rb
+
 messages:
   lookup:
     response: season_record
@@ -20,28 +22,43 @@ messages:
     - request:
       - team_id: TEX
         season: 2010
+
 targets:
+
   catalog:
   - name: season_stats_catalog_entry
-    title: Pennant Baseball Seasons (1960-2010)
+    title: "MLB Baseball API: Season Statistics (1952-2010)"
     description: |-
+
       Take me out to the ball game! Get game_ids and see team season statistics like win, losses, RBIs, OBP, ERA,and many more. Get both the absolute values and percentiles related to the rest of the league. Plug the game_id into the Pennant Baseball Game Logs API to get at bat data.
 
-      To find individual season statistics just enter the team_id and year. You can get the team_id and year from the Pennant Baseball History API. You can also use this API in concert with Pennant Baseball History to get a list of all available seasons and team_ids.
+      To find individual season statistics just enter the team_id and year. You can get the team_id and year from the "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010. Plug the game_ids into the "MLB Baseball API: Game Logs (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get box scores.
 
       Are you an app developer? Use the API to build captivating visualizations or to recap your favorite seasons.
-      Fancy yourself a statistician? Use this data to glean new insights about your favorite teams.
 
-      The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
-      Note that while Pennant's Baseball Seasons is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
+      How about a statistician? Use this data to glean new insights about your favorite teams.
+
+      There is a one-time free trial of up to 5000 calls. After the first 5,000 calls, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
+
+      Note: While MLB Baseball API: Season Statistics (1952-2010) is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
     tags:
     - sports
     - baseball
     - stats
     - statistics
-    - more-tags-please
     messages:
     - lookup
+
+  hbase:
+  - table_name: sports_baseball_vargatron
+    column_families:
+    - season
+    - game
+    - inning
+    loader: fourple_loader
+    data_assets:
+    - season_stats_data_asset
+    
 types:
 
 - name: season_stats_lookup_request
@@ -51,8 +68,34 @@ types:
   - name: team_id
     type: string
   - name: season
-    type: string
+    type: int
 
+- name: game_record
+  type: record
+  doc: The game_id, date, score, opponent's score, and win-loss for a specific game. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
+  fields:
+  - name: game_date
+    doc: The date of the game. The date's format is "AAAABBCCD". AAAA is the four-digit number of the year. BB is the two-digit number of the month. CC is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
+    type: string
+  - name: game_type
+    doc: Whether the game was 'home' or 'away'.
+    type: string
+  - name: opponent
+    doc: The three-letter uppercase id for the opposing team.
+    type: string
+  - name: home_score
+    doc: The number of points the home team scored.
+    type: int
+  - name: away_score
+    doc: The number of points the away team scored.
+    type: int
+  - name: result
+    doc: Whether the game was a win ("W") or a loss ("L").
+    type: string
+  - name: double_header
+    doc: Whether or not this game was part of a double-header. Will be 'true' or 'false'.
+    type: string 
+    
 - name: season_record
   type: record
   doc: All of the team's records for a specific season.
@@ -68,7 +111,8 @@ types:
     type: string
   - name: team_location
     doc: The team location, generally a city or state.
-    type: string  - name: primary_color
+    type: string
+  - name: primary_color
     doc: The team's primary color's name.
     type: string
   - name: secondary_color
@@ -96,13 +140,13 @@ types:
     doc: This team's ranking out of its division for this season.
     type: int
   - name: DS
-    doc: PROD Division wins?
+    doc: Division series wins.
     type: int
   - name: LS
-    doc: PROD League wins?
+    doc: League series wins.
     type: int
   - name: WS
-    doc: PROD World Series wins?
+    doc: World Series wins.
     type: int
   - name: W
     doc: Total wins this season.
@@ -153,10 +197,10 @@ types:
     doc: Total sacrifice flies this season.
     type: int
   - name: RA
-    doc: Total PROD this season.
+    doc: Total runs allowed this season.
     type: int
   - name: ER
-    doc: Total PROD this season.
+    doc: Total earned runs this season.
     type: int
   - name: ERA
     doc: Total earned run average this season.
@@ -171,7 +215,7 @@ types:
     doc: Total saves this season.
     type: int
   - name: IPouts
-    doc: Total PROD this season.
+    doc: Total innings pitched x outs this season.
     type: int
   - name: HA
     doc: Total hits against this season.
@@ -189,7 +233,7 @@ types:
     doc: Total errors this season.
     type: int
   - name: DP
-    doc: Total PROD this season.
+    doc: Total double plays this season.
     type: int
   - name: FP
     doc: Total fielding percentage this season.
@@ -243,10 +287,10 @@ types:
     doc: League percentile for sacrifice flies this season.
     type: float
   - name: relative_RA
-    doc: League percentile for PROD this season.
+    doc: League percentile for runs allowed this season.
     type: float
   - name: relative_ER
-    doc: League percentile for PROD this season.
+    doc: League percentile for earned runs this season.
     type: float
   - name: relative_ERA
     doc: League percentile for earned run average this season.
@@ -261,7 +305,7 @@ types:
     doc: League percentile for saves this season.
     type: float
   - name: relative_IPouts
-    doc: League percentile for PROD this season.
+    doc: League percentile for innings pitched x outs this season.
     type: float
   - name: relative_HA
     doc: League percentile for hits against this season.
@@ -279,7 +323,7 @@ types:
     doc: League percentile for errors this season.
     type: float
   - name: relative_DP
-    doc: League percentile for PROD this season.
+    doc: League percentile for double plays this season.
     type: float
   - name: relative_FP
     doc: League percentile for fielding percentage this season.
@@ -295,28 +339,3 @@ types:
       type: array
       items: game_record
 
-- name: game_record
-  type: record
-  doc: The game_id, date, score, opponent's score, and result for a specific game. Much more data is included in the Pennant Baseball Game Logs API, accessed using the game_id.
-  fields:
-  - name: date
-    doc: The date of the game. The date's format is "AAAABBCCD". AAAA is the four-digit number of the year. BB is the two-digit number of the month. CC is the two-digit number of the day. E is the number of the game that day beginning at 0- so it's 0 for most games, 1 for the second game of a double-header, and so on.
-    type: string
-  - name: game_type
-    doc: Whether the game was 'home' or 'away'.
-    type: string
-  - name: opponent
-    doc: The three-letter uppercase id for the opposing team.
-    type: string
-  - name: home_score
-    doc: The number of points the home team scored.
-    type: int
-  - name: away_score
-    doc: The number of points the away team scored.
-    type: int
-  - name: result
-    doc: Whether the game was a win ("W") or a loss ("L").
-    type: string
-  - name: double_header
-    doc: Whether or not this game was part of a double-header. Will be 'true' or 'false'.
-    type: string 

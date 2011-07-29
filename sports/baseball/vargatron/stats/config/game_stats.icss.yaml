@@ -1,14 +1,16 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: game_stats
-under_consideration: true
+
 data_assets:
 - name: game_stats_data_asset
   location: data/game_stats.json
   type: game_record
+
 code_assets:
 - name: game_stats_code
   location: code/game_stats_endpoint.rb
+  
 messages:
   lookup:
     response: game_record
@@ -19,160 +21,50 @@ messages:
     samples:
     - request:
       - game_id: TEX201010300
+
 targets:
+
   catalog:
   - name: game_stats_catalog_entry
-    title: Pennant Baseball Game Logs (1960-2010)
+    title: "MLB Baseball API: Game Logs (1952-2010)"
     description: |-
-      Get out your peanuts and crackerjacks, and see at bats and statistics for sixty years of regular season and playoff baseball games logs!
+      Get out your peanuts and crackerjacks, and see at bats and statistics for sixty years of regular season and playoff baseball games!
 
-      To find a game log enter the team_id, year, and game_id. Get back the stat line, the results of every at bat, and the final box score. Use the Pennant Baseball Game Logs API in concert with Pennant Baseball History and Pennant Baseball Seasons to find the years of available data, team_id, and game_ids for every team.
+      To find a game log enter the team_id, year, and game_id. Get back the stat line, the results of every at bat, and the final box score. Use this API in concert with "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010 and "MLB Baseball API: Season Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to find the seasons played, team_id, and game_ids for every team.
 
       Are you an app developer? Use the API to build cool visualizations or reenact your favorite games.
-      Fancy yourself a statistician? Use this data to glean new insights about your favorite teams.
 
-      The first 5,000 calls per month for this data are free. After the first 5,000, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
-      Note that while Pennant's Baseball Seasons is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
+      How about a statistician? Use this data to glean new insights about your favorite teams.
+
+      There is a one-time free trial of up to 5000 calls. After the first 5,000 calls, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
+
+      Note: While MLB Baseball API: Game Logs (1952-2010) is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
     tags:
     - sports
     - baseball
     - stats
     - statistics
-    - more-tags-please
     messages:
     - lookup
+
+  hbase:
+  - table_name: sports_baseball_vargatron
+    column_families:
+    - seasons
+    - games
+    - innings
+    loader: fourple_loader
+    data_assets:
+    - game_stats_data_asset
+    
 types:
+
 - name: game_stats_lookup_request
   doc: Query API parameters for the game_record lookup message.
   type: record
   fields:
   - name: game_id
     type: string
-- name: game_record
-  type: record
-  doc: Complete information about a specific game.
-  fields:
-  - name: game_id
-    doc: This game's unique id. The id's format is "AAABBBBCCDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day. E is 0 for most games, 1 for the first game of a double-header, and 2 for the second game of a double-header.
-    type: string
-  - name: date
-    doc: The date of the game. The date's format is "BBBBCCDD". BBBB is the four-digit number of the year. DD is the two-digit number of the month. DD is the two-digit number of the day.
-    type: string
-  - name: day_of_the_week
-    doc: What day of the week the game fell on.
-    type: string
-  - name: start_time
-    doc: When the game started, in local time.
-    type: string
-  - name: attendance
-    doc: The number of fans in attendence at the stadium.
-    type: string
-  - name: stadium
-    doc: The name of the stadium where the game occurred.
-    type: string
-  - name: location
-    doc: The location of the stadium where the game occurred.
-    type: string
-  - name: home_team_stats
-    doc: This game's stats for the home team.
-    type: team_record
-  - name: away_team_stats
-    doc: This game's stats for the away team.
-    type: team_record
-  - name: innings
-    doc: Play-by-play for the game, broken into innings.
-    type:
-      type: array
-      items: inning_record
-
-- name: team_record
-  type: record
-  doc: The record for one team, including stats at the end of the game and a list of players who played this game.
-  fields:
-  - name: team_id
-    doc: The three-letter uppercase identifier for this team.
-    type: string  
-  - name: team_name 
-    doc: The team's name.
-    type: string
-  - name: team_location
-    doc: The team location, generally a city or state.
-    type: string
-  - name: league_rank
-    doc: The team's rank in their league after this game.
-    type: int
-  - name: division_rank
-    doc: The team's rank in their division after this game.
-    type: int
-  - name: runs
-    doc: The number of runs the team scored during this game.
-    type: int
-  - name: hits
-    doc: The number of hits the team scored during this game.
-    type: int
-  - name: errors
-    doc: The number of errors the team made during this game.
-    type: int
-  - name: left_on_base
-    doc: The number of players left on base during this game.
-    type: int
-  - name: pitching 
-    doc: The list of pitchers that played for this team this game.
-    type: 
-      type: array
-      items: pitcher_record
-  - name: batting
-    doc: The list of batters that played for this team this game.
-    type: 
-      type: array
-      items: batter_record
-
-- name: inning_record
-  type: record
-  doc: Play-by-play of a specific inning.
-  fields:
-  - name: number
-    doc: The number of the inning.
-    type: int
-  - name: home_play_by_play
-    doc: All the events that occurred during this inning.
-    type:
-      type: array
-      items: event_record
-  - name: away_play_by_play
-    doc: All the events that occurred during this inning.
-    type:
-      type: array
-      items: event_record
-
-- name: event_record
-  type: record
-  doc: The description of a specific event during the game.
-  fields:
-  - name: player_id
-    doc: The id of the player who was at bat. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
-    type: string
-  - name: pitcher_id
-    doc: The id of the player who was pitching. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
-    type: string
-  - name: balls
-    doc: The number of balls during this event.
-    type: int
-  - name: strikes
-    doc: The number of strikes during this event.
-    type: int
-  - name: result
-    doc: The result of this event, in a string.
-    type: string
-  - name: description
-    doc: A description of this event, including full player names.
-    type: string
-  - name: home_score
-    doc: The home team's score after this event.
-    type: int
-  - name: away_score
-    doc: The away team's score after this event.
-    type: int
 
 - name: pitcher_record
   doc: The details for a particular pitcher, including player_id, name, batters faced, hits, walks, and rbi.
@@ -213,7 +105,7 @@ types:
   - name: last_name
     doc: The player's last name.
     type: string
-  - name: at_bat
+  - name: at_bats
     doc: At bats this game.
     type: int
   - name: hits
@@ -225,3 +117,77 @@ types:
   - name: rbi
     doc: Runs batted in for this game.
     type: int
+    
+- name: team_record
+  type: record
+  doc: The game record for a team, including rank and a list of players who participated in this game.
+  fields:
+  - name: team_id
+    doc: The three-letter uppercase identifier for this team.
+    type: string  
+  - name: team_name 
+    doc: The team's name.
+    type: string
+  - name: team_location
+    doc: The team location, generally a city or state.
+    type: string
+  - name: league_rank
+    doc: The team's rank in their league after this game.
+    type: int
+  - name: division_rank
+    doc: The team's rank in their division after this game.
+    type: int
+  - name: runs
+    doc: The number of runs the team scored during this game.
+    type: int
+  - name: hits
+    doc: The number of hits the team scored during this game.
+    type: int
+  - name: errors
+    doc: The number of errors the team made during this game.
+    type: int
+  - name: left_on_base
+    doc: The number of players left on base during this game.
+    type: int
+  - name: pitching 
+    doc: The list of pitchers that played for this team this game.
+    type: 
+      type: array
+      items: pitcher_record
+  - name: batting
+    doc: The list of batters that played for this team this game.
+    type: 
+      type: array
+      items: batter_record
+    
+- name: game_record
+  type: record
+  doc: Complete information about a specific game.
+  fields:
+  - name: game_id
+    doc: This game's unique id. The id's format is "AAAYYYMMDDE". AAA is the three-letter uppercase team_id that corresponds to the home field. YYYY is the four-digit number of the year. MM is the two-digit number of the month. DD is the two-digit number of the day. E is 0 for most games, 1 for the first game of a double-header, and 2 for the second game of a double-header.
+    type: string
+  - name: date
+    doc: The date of the game. The date's format is "YYYYMMDD". YYYY is the four-digit number of the year. MM is the two-digit number of the month. DD is the two-digit number of the day.
+    type: string
+  - name: day_of_the_week
+    doc: What day of the week the game fell on.
+    type: string
+  - name: start_time
+    doc: When the game started, in local time.
+    type: string
+  - name: attendance
+    doc: The number of fans in attendence at the stadium.
+    type: string
+  - name: stadium
+    doc: The name of the stadium where the game occurred.
+    type: string
+  - name: location
+    doc: The location of the stadium where the game occurred.
+    type: string
+  - name: home_team_stats
+    doc: This game's stats for the home team.
+    type: team_record
+  - name: away_team_stats
+    doc: This game's stats for the away team.
+    type: team_record

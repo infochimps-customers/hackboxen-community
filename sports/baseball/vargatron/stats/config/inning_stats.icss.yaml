@@ -1,0 +1,46 @@
+- name: inning_record
+  type: record
+  doc: Play-by-play of a specific inning.
+  fields:
+  - name: number
+    doc: The number of the inning.
+    type: int
+  - name: home_play_by_play
+    doc: All the events that occurred during this inning.
+    type:
+      type: array
+      items: event_record
+  - name: away_play_by_play
+    doc: All the events that occurred during this inning.
+    type:
+      type: array
+      items: event_record
+
+- name: event_record
+  type: record
+  doc: The description of a specific event during the game.
+  fields:
+  - name: player_id
+    doc: The id of the player who was at bat. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
+    type: string
+  - name: pitcher_id
+    doc: The id of the player who was pitching. The format is aaaabXXX, where aaaa is the first four letters of the player's last name, b is the player's first initial, and XXX is to differentiate between players with similar names. For most players, it'll be 001.
+    type: string
+  - name: balls
+    doc: The number of balls during this event.
+    type: int
+  - name: strikes
+    doc: The number of strikes during this event.
+    type: int
+  - name: result
+    doc: The result of this event, in a string.
+    type: string
+  - name: description
+    doc: A description of this event, including full player names.
+    type: string
+  - name: home_score
+    doc: The home team's score after this event.
+    type: int
+  - name: away_score
+    doc: The away team's score after this event.
+    type: int

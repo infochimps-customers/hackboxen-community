@@ -1,7 +1,6 @@
 ---
 namespace: sports.baseball.vargatron
 protocol: team_stats
-under_consideration: true
 
 data_assets:
 - name: team_stats_data_asset
@@ -15,7 +14,7 @@ code_assets:
 messages:
   search:
     response: es_response
-    doc: Get a team's team_id, list of years played, W-L records, and more.
+    doc: Get a team's id, list of seasons played, W-L records, and more.
     request:
     - name: team_stats_search_request
       type: team_stats_search_request
@@ -27,12 +26,12 @@ targets:
 
   catalog:
   - name: team_stats_catalog_entry
-    title: Pennant Baseball History (1952-2010)
+    title: "MLB Baseball API: Team Statistics (1952-2010)"
     description: |-
-      
-      Batter up! Enter an MLB team name and in return get its team_id and a list of the years played, between 1960-2010.
 
-      Partner this API with the Pennant Baseball Seasons API and get back team statistics, records, and game_ids. Use game_ids with the Pennant Baseball Game Logs API to get full at-bat data.
+      Batter up! Enter a MLB team name and in return get back wins, losses, current team colors, seasons played, final regular season standings, home stadium, and team_ids for 1952-2010.
+
+      Grab the team_ids from this API and input them into the "MLB Baseball API: Season Statistics":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to get back detailed team statistics, records, and game_ids. Use game_ids with the "MLB Baseball Game Logs API":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get box scores.
 
     tags:
     - sports
@@ -65,9 +64,9 @@ types:
     type: int
     doc: Integer offset to start @results@ at. A multiple of 10.
 
-- name: year_record
+- name: season_record
   type: record
-  doc: A year record contains the year, the number of wins, the number of losses, and the league.
+  doc: A season record contains the year, the number of wins, the number of losses, and the league.
   fields:
   - name: season
     doc: The year for this season.
@@ -79,18 +78,20 @@ types:
     doc: Number of losses this season.
     type: int
   - name: division_series
-    doc: PROD 1 if the team won its division series this year, 0 if not.
+    doc: Number of division series wins this season.
     type: int
   - name: league_rank
-    doc: This team's ranking out of its league for this season.
+    doc: This team's league ranking for this season.
     type: int
   - name: division_rank
-    doc: This team's ranking out of its division for this season.
+    doc: This team's division ranking for this season.
     type: int
 
 - name: team_record
   type: record
-  doc: A team record contains a team's id, colors, league, years played, and win-loss records for those years.
+  doc: |-
+    A team record contains a team's id, current colors, league, division and home stadium.
+    It also containes seasons played, and win-loss records for those seasons.
   fields:
   - name: team_id
     doc: Uppercase 3-letter team identifier. When a team moves, it gets a new id.
@@ -123,10 +124,10 @@ types:
     doc: The team's one-letter uppercase division identifier for its most recent season.
     type: string
   - name: seasons
-    doc: A list of all the years that the team played, with wins, losses, division series, division rank, and league rank for each year.
+    doc: A list of all the seasons that the team played, with wins, losses, division series, division rank, and league rank for each season.
     type:
       type: array
-      items: year_record
+      items: season_record
     
 - name: es_response
   type: record

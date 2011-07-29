@@ -6,11 +6,9 @@ requires:
   language:
     ruby: 1.8.7
     gems:
-    - hackboxen: 0.1.2
+    - hackboxen: 0.1.5
     - swineherd: 0.0.4
     - nokogiri: 1.4.4
-under_consideration: true # This flag is set to true for initial publishing, then removed when fully complete
-update_frequency: monthly # How often the data is refreshed
 s3_loc_1: infochimps-hackboxen/data/sports/baseball/vargatron/pennantAPIv02.tar.gz
 s3_loc_2: infochimps-hackboxen/data/sports/baseball/vargatron/standings.zip
 s3_debug: infochimps-hackboxen/data/sports/baseball/vargatron/debug.zip
