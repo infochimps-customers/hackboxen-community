@@ -4,17 +4,19 @@ protocol: game_stats
 
 data_assets:
 - name: game_stats_data_asset
-  location: data/game_stats.json
+  location: data/game_stats.tsv
   type: game_record
 
 code_assets:
-- name: game_stats_code
+- name: game_stats_code_asset
   location: code/game_stats_endpoint.rb
   
 messages:
   lookup:
     response: game_record
     doc: Get a detailed play-by-play of a specific game.
+    initial_free_qty: 5000
+    price_per_k_in_cents: 500
     request:
     - name: game_stats_lookup_request
       type: game_stats_lookup_request
@@ -28,9 +30,9 @@ targets:
   - name: game_stats_catalog_entry
     title: "MLB Baseball API: Game Logs (1952-2010)"
     description: |-
-      Get out your peanuts and crackerjacks, and see at bats and statistics for sixty years of regular season and playoff baseball games!
+      Get out your peanuts and crackerjacks, and see attendance, box scores and statistics for nearly sixty seasons of regular season and playoff baseball games!
 
-      To find a game log enter the team_id, year, and game_id. Get back the stat line, the results of every at bat, and the final box score. Use this API in concert with "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010 and "MLB Baseball API: Season Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to find the seasons played, team_id, and game_ids for every team.
+      To find a game log enter the team_id, season, and game_id. Get back the stat line and the final box score. Use this API in concert with "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010 and "MLB Baseball API: Season Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to find the seasons played, team_id, and game_ids for every team.
 
       Are you an app developer? Use the API to build cool visualizations or reenact your favorite games.
 
@@ -50,12 +52,14 @@ targets:
   hbase:
   - table_name: sports_baseball_vargatron
     column_families:
-    - seasons
-    - games
-    - innings
+    - base
     loader: fourple_loader
     data_assets:
     - game_stats_data_asset
+
+  apeyeye:
+  - code_asset:
+    - game_stats_code_asset
     
 types:
 
@@ -65,6 +69,7 @@ types:
   fields:
   - name: game_id
     type: string
+    doc: The id for a particular game. Formatted as XXXYYYYMMDDG where XXX is the team_id, YYYY is the year, MM is the month, DD is the day, an G is a 0 for a regular game, or 1 or 2 for a double-header game.
 
 - name: pitcher_record
   doc: The details for a particular pitcher, including player_id, name, batters faced, hits, walks, and rbi.

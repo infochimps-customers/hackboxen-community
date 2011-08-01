@@ -1,20 +1,81 @@
-- name: inning_record
+---
+namespace: sports.baseball.vargatron
+protocol: inning_stats
+
+data_assets:
+- name: inning_stats_data_asset
+  location: data/inning_stats.tsv
+  type: inning_stats_record
+
+code_assets:
+- name: inning_stats_code_asset
+  location: code/inning_stats_endpoint.rb
+
+messages:
+  lookup:
+    response: inning_stat_record
+    doc: Get back a single inning's play-by-play record for away and home teams.
+    initial_free_qty: 5000
+    price_per_k_in_cents: 500
+    request:
+    - name: inning_stats_lookup_request
+      type: inning_stats_lookup_request
+    samples:
+    - request:
+      - game_id: TEX201010300
+        innning: 1
+  
+targets:
+
+  catalog:
+  - name:
+    title: "MLB Baseball API: Plate Appearance Results (1952-2010)"
+    description: |-
+      Swing for the fences with the Plate Appearance Results API! See the results of every plate appearance since 1952 for all regular season and playoff baseball games!
+
+      To see a plate appearance enter the team_id, season, game_id, and inning. Get back the stat line, the results of every at bat, and the final box score.
+
+      You can get team_ids and seasons from "MLB Baseball API: Team Statistics" :http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010 , and game_ids from "MLB Baseball API: Season Statistics": :http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010
+
+      Are you an app developer? Use the API to build cool visualizations or reenact your favorite games.
+
+      How about a statistician? Use this data to glean new insights about your favorite teams.
+
+      There is a one-time free trial of up to 5000 calls. After the first 5,000 calls, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
+
+      Note: While MLB Baseball API: Plate Appearance Results (1952-2010) is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
+    tags:
+    - sports
+    - baseball
+    - stats
+    - statistics
+    messages:
+    - lookup
+
+  hbase:
+  - table_name: sports_baseball_vargatron
+    column_families:
+    - base
+    loader: fourple_loader
+    data_assets:
+    - inning_stats_data_asset
+
+  apeyeye:
+  - code_assets:
+    - inning_stats_code_asset
+
+types:
+
+- name: inning_stats_lookup_request
+  doc: The request structure for an inning record lookup.
   type: record
-  doc: Play-by-play of a specific inning.
   fields:
-  - name: number
-    doc: The number of the inning.
+  - name: game_id
+    type: string
+    doc: The id for a particular game. Formatted as XXXYYYYMMDDG where XXX is the team_id, YYYY is the year, MM is the month, DD is the day, an G is a 0 for a regular game, or 1 or 2 for a double-header game.
+  - name: inning
+    doc: The number of the inning you are searching for
     type: int
-  - name: home_play_by_play
-    doc: All the events that occurred during this inning.
-    type:
-      type: array
-      items: event_record
-  - name: away_play_by_play
-    doc: All the events that occurred during this inning.
-    type:
-      type: array
-      items: event_record
 
 - name: event_record
   type: record
@@ -44,3 +105,37 @@
   - name: away_score
     doc: The away team's score after this event.
     type: int
+    
+- name: inning_stat_record
+  type: record
+  doc: Play-by-play of a specific inning.
+  fields:
+  - name: inning_number
+    doc: The number of the inning.
+    type: int
+  - name: home_team_id
+    doc: The team_id for the home team.
+    type: string
+  - name: away_team_id
+    doc: The team_id for the away team.
+    type: string
+  - name: game_id
+    doc: The id for the game.
+    type: string
+  - name: home_team_score
+    doc: The score for the home team.
+    type: int
+  - name: away_team_score
+    doc: The score for the away team.
+    type: int
+  - name: home_play_by_play
+    doc: All the events that occurred during this inning.
+    type:
+      type: array
+      items: event_record
+  - name: away_play_by_play
+    doc: All the events that occurred during this inning.
+    type:
+      type: array
+      items: event_record
+

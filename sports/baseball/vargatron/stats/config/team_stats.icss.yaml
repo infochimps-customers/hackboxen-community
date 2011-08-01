@@ -15,6 +15,8 @@ messages:
   search:
     response: es_response
     doc: Get a team's id, list of seasons played, W-L records, and more.
+    initial_free_qty: 5000
+    price_per_k_in_cents: 500
     request:
     - name: team_stats_search_request
       type: team_stats_search_request
@@ -28,11 +30,15 @@ targets:
   - name: team_stats_catalog_entry
     title: "MLB Baseball API: Team Statistics (1952-2010)"
     description: |-
-
       Batter up! Enter a MLB team name and in return get back wins, losses, current team colors, seasons played, final regular season standings, home stadium, and team_ids for 1952-2010.
 
-      Grab the team_ids from this API and input them into the "MLB Baseball API: Season Statistics":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to get back detailed team statistics, records, and game_ids. Use game_ids with the "MLB Baseball Game Logs API":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get box scores.
+      Grab the team_ids from this API and input them into the "MLB Baseball API: Season Statistics":http://www.infochimps.com/datasets/MLB-Baseball-API-Season-Statistics-1952-2010 to get back detailed team statistics, records, and game_ids. Use game_ids with the "MLB Baseball Game Logs API":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get attendance, box scores, and statistics.
 
+      Click "here":http://www.infochimps.com/datasets/mlb-baseball-api-team-statistics-1952-2010#api-docs_tab to see the full list of statistics.
+
+      There is a one-time free trial of up to 5000 calls. After the first 5,000 calls, the calls are $5 per 1,000 calls. At the end of every month, we will tally your usage and bill your credit card. Any calls to any Pennant data will be included in this total. This data is considered a Premium Data Set, and only Brass Monkey customers or higher will be able to use it. We offer a 14 day trial for any new Brass monkey sign up, that allows you to play with the data for free up to the 5,000 call limit.
+
+      Note: While MLB Baseball API: Team Statistics (1952-2010) is a paid API, the supplier is making it free for not for profit and educational purposes. Contact Infochimps to let us know what you plan to do with the API and to see if you qualify for free access.
     tags:
     - sports
     - baseball
@@ -48,6 +54,11 @@ targets:
     loader: json_loader
     data_assets:
     - team_stats_data_asset 
+
+  apeyeye:
+  - code_assets:
+    - team_stats_code_asset
+  
     
 types:
 - name: team_stats_search_request

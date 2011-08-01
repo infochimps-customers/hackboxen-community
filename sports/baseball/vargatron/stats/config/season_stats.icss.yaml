@@ -4,17 +4,19 @@ protocol: season_stats
 
 data_assets:
 - name: season_stats_data_asset
-  location: data/season_stats.json
+  location: data/season_stats.tsv
   type: season_record
 
 code_assets:
-- name: season_stats_code
+- name: season_stats_code_asset
   location: code/season_stats_endpoint.rb
 
 messages:
   lookup:
     response: season_record
     doc: Get detailed records for a specific team's season.
+    initial_free_qty: 5000
+    price_per_k_in_cents: 500
     request:
     - name: season_stats_lookup_request
       type: season_stats_lookup_request
@@ -29,10 +31,9 @@ targets:
   - name: season_stats_catalog_entry
     title: "MLB Baseball API: Season Statistics (1952-2010)"
     description: |-
+      Take me out to the ball game! Get game_ids and see team season statistics like win, losses, RBIs, OBP, ERA,and many more. Get both the absolute values and percentiles related to the rest of the league. Plug the game_id into the "MLB Baseball API: Plate Appearance Results":http://www.infochimps.com/datasets/MLB-Baseball-API-Plate-Appearance-Results-1952-2010 to get back results for nearly 60 seasons of at-bats.
 
-      Take me out to the ball game! Get game_ids and see team season statistics like win, losses, RBIs, OBP, ERA,and many more. Get both the absolute values and percentiles related to the rest of the league. Plug the game_id into the Pennant Baseball Game Logs API to get at bat data.
-
-      To find individual season statistics just enter the team_id and year. You can get the team_id and year from the "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010. Plug the game_ids into the "MLB Baseball API: Game Logs (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get box scores.
+      To find individual season statistics just enter the team_id and season. You can get the team_id and season from the "MLB Baseball API: Team Statistics (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Team-Statistics-1952-2010. Plug the game_ids into the "MLB Baseball API: Game Logs (1952-2010)":http://www.infochimps.com/datasets/MLB-Baseball-API-Game-Logs-1952-2010 to get box scores.
 
       Are you an app developer? Use the API to build captivating visualizations or to recap your favorite seasons.
 
@@ -52,12 +53,14 @@ targets:
   hbase:
   - table_name: sports_baseball_vargatron
     column_families:
-    - season
-    - game
-    - inning
+    - base
     loader: fourple_loader
     data_assets:
     - season_stats_data_asset
+
+  apeyeye:
+  - code_assets:
+    - season_stats_code_asset
     
 types:
 
