@@ -10,9 +10,9 @@ data_assets:
 targets:
   catalog:
   - name: politics_question_catalog_entry
-    title: Ok Cupid Describe yourself politically
+    title: OkCupid Political Sentiment API
     description: -|
-    The data contains answers to the OkCupid question of "How would you describe yourself politically?". Provided are the frequency of responses to each of the possible answers, Liberal, Centrist, Conservative, None Of The Above, based on location (state, city, or metropolitan statistical area (MSA)), age group, and gender.  
+    The OkCupid data is derived from the question, "How would you describe yourself politically?". Provided are the frequency of responses to each of the possible answers, Liberal, Centrist, Conservative, None Of The Above. In addition, the data also provides location (state, city, or metropolitan statistical area (MSA)), age group, and gender of the participants.  OkCupid is a popular free online dating site, recently purchased by Match.com, the largest dating website.  
     tags:
     - politics
     - dating
