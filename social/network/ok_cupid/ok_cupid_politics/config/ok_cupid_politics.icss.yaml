@@ -12,11 +12,17 @@ targets:
   - name: politics_question_catalog_entry
     title: OkCupid Political Sentiment API
     description: -|
-    The OkCupid data is derived from the question, "How would you describe yourself politically?". 
+    The data is derived from the OkCupid question, "How would you describe yourself politically?". 
 Provided are the frequency of responses to each of the possible answers, Liberal, Centrist, 
-Conservative, None Of The Above. In addition, the data also provides location (state, city, 
-or metropolitan statistical area (MSA)), age group, and gender of the participants.  OkCupid 
-is a popular free online dating site, recently purchased by Match.com, the largest dating website.  
+Conservative, None Of The Above. In addition, the data provides the location (state, city, 
+or metropolitan statistical area (MSA)), age group, and gender of the participants. With the data
+combined one could gain a very insightful understanding of an area's political makeup. OkCupid 
+is a popular free online dating site, recently purchased by Match.com.  
+
+h3. OkCupid Political Sentiment Use Cases
+
+* Discover Trends in Geographic Areas
+* Make political comparisons in answers by age, gender, and other demographic details
     tags:
     - politics
     - dating
