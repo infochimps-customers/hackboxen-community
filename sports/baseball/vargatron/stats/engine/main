@@ -36,19 +36,21 @@ if File.exists?(log_file_loc)
 else
   #Make the log file.
   $log_file=File.open(log_file_loc,'w')
+  $log_file.puts("SEP.xml")
+  $log.push("SEP.xml") #This is a bad file.
 end
 
 task :parse_team_files do
-  Dir[File.join($datasource,"???.xml")].each { |t_file|
-    #Since team_records are done last, we can skip everything if the team file is in the log.
-    #This will cause problems if the team files update- for example, at the end of the 2011 season.
+  Dir[File.join($datasource,"???.xml")].sort.each { |t_file|
+    #The logs will need to be deleted or this modified for the 2011 data.
     next if $log.index(File.basename(t_file))
     #Process the team file and all of its season files.
     parse_team_file(t_file)
   }
+  puts "Finished creating the team records."
 end
 
-#Returns a complete team_record object. 
+#Processes all files associated with a team. 
 def parse_team_file t_file
   x = Nokogiri::XML.parse(File.read(t_file))
   #The team file has most of the data for each season, but it doesn't have the list of game_ids. We'll need to pull each season file for that. While we're at it, we'll also pull the win-loss records for the team_record.
@@ -61,14 +63,45 @@ def parse_team_file t_file
   team_record.store("secondary_color",x.xpath('/team/info/@secondaryColorName')[0].value)
   team_record.store("primary_color_hex",x.xpath('/team/info/@primaryColorHex')[0].value)
   team_record.store("secondary_color_hex",x.xpath('/team/info/@secondaryColorHex')[0].value)
+  #Since some teams died before 2010, their most recent season might be old.
+  last_game = Dir[File.join($datasource,team_record["team_id"]+"?????????.xml")].sort.last
+  last_year = last_game[-13..-10].to_i
   #Then, get a list of all of the seasons, and write the season_record for each:
   year_records=[]
   x.xpath('/team/seasons').children.each{|y|
-    #For the team_record:
-    year_records.push(Hash["season",y.xpath('./@year')[0].value.to_i,
+    season=y.xpath('./@year')[0].value.to_i
+    year_records.push(Hash["season",season,
                            "wins",y.xpath('./teamStats/@W')[0].value.to_i,
                            "losses",y.xpath('./teamStats/@L')[0].value.to_i,
                            "division_series",y.xpath('./postSeasonSeriesWins/@DS')[0].value.to_i])
+    #Division, league rank, and division rank all need to be pulled out of the standings file for this season.
+    s = Nokogiri::XML.parse(File.read(File.join(path_to(:rawd_dir),"standings",season.to_s << ".xml")))
+    #Divisions only exist from 1969 onward.
+    if season>1968
+      year_records.last.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2]["rank"].to_i)
+      year_records.last.store("division_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
+      if season==last_year
+        team_record.store("division",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1].parent.name) 
+        team_record.store("league",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2].parent.parent.name)
+      end
+    else
+      year_records.last.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
+      team_record.store("league",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2].parent.parent.name) if season==last_year
+    end
+  }
+  team_record.store("seasons",year_records)
+  #The stadium is most conveniently stored in the game files. Pick the last game they hosted in the last year and pull it from there.
+  g = Nokogiri::XML.parse(File.read(last_game))
+  team_record.store("home_stadium",g.xpath('/gamedata/game/stadium/@name')[0].value)
+  #Append the team_record to the file.
+  $team_out.puts(team_record.to_json)
+  #Finally, add the file to the log.
+  $log_file.puts(File.basename(t_file))
+  puts team_record["team_id"]
+end
+
+#Beforehand, this was part of parse_team_file because the season_record needs some things from the team file, and the game_record needs some things from the season file, everything associated with one team gets processed at once.
+def parse_season_file s_file
     #Now, create the season_record if we haven't done this one.
     s_file=t_file.gsub(/\.xml\z/,year_records.last["season"].to_s<<".xml")
     next if $log.index(File.basename(s_file))
@@ -76,8 +109,6 @@ def parse_team_file t_file
     season_record.merge!(team_record)
     season_record.store("season",y.xpath('./@year')[0].value.to_i)
     season_record.store("league",y.xpath('./@league')[0].value)
-    #League changes for one team, and so we should store only the last year's season.
-    team_record.store("league",season_record["league"]) if season_record["season"]==$last_year
     y.xpath('./postSeasonSeriesWins')[0].attributes.each{|k,v|
       season_record.store(k,v.value.to_i)}
     y.xpath('./teamStats')[0].attributes.each{|k,v|
@@ -100,7 +131,6 @@ def parse_team_file t_file
       season_record.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-2]["rank"].to_i)
       season_record.store("division_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
       season_record.store("division",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1].parent.name)
-      team_record.store("division",season_record["division"]) if season_record["season"]==$last_year
       year_records.last.store("division_rank",season_record["division_rank"])
     else
       season_record.store("league_rank",s.xpath("//team[contains(@id,'#{team_record["team_id"]}')]")[-1]["rank"].to_i)
@@ -128,7 +158,7 @@ def parse_team_file t_file
       else
         p_game_records.push(gr)
       end
-      #Now is actually the best time to parse the game files, since we've got both the relevant season and standing fields open, in z and s.
+      #Now is the best time to parse the game files, since we've got both the relevant season and standing fields open, in z and s.
       #Since each game file has two participants, only parse home games.
       g_file = File.join($datasource,game_id+".xml")
       if gr["game_type"]=="home" and !$log.index(File.basename(g_file))
@@ -143,7 +173,7 @@ def parse_team_file t_file
         game_record.store("start_time",w["starttime"].insert(1,":") << " PM")
         #The stadium name needs to be processed.
         stadium=g.xpath('/gamedata/game/stadium/@name')[0].value.gsub(/ \(P.*\)/,'')
-        city = game_record["location"].gsub(/, [A-Z]{2}/,'')
+        city = game_record["location"].gsub(/, ?[A-Z]{2}/,'')
         stadium << " in " << city unless stadium.index(city)
         game_record.store("stadium",stadium)
         season_record.store("home_stadium",stadium) unless season_record["home_stadium"]
@@ -264,27 +294,18 @@ def parse_team_file t_file
           inning_records.push(inning_record)
         }
         game_record.store("innings",inning_records)
-        #Append the team_record to the file.
+        #Append the game_record to the file.
         $game_out.puts(game_record.to_json)
         #Finally, add the file to the log.
         $log_file.puts(File.basename(g_file))
       end  
     }
-    #The team_record will be missing its home_stadium entry if the last season file is written and then the program halts before writing the team_record file. This case seems unlikely enough that I'm not going to check for it.
-    team_record.store("home_stadium",season_record["home_stadium"]) if season_record["season"]==$last_year
     season_record.store("regular_season_games",s_game_records)
     season_record.store("post_season_games",p_game_records)
     #We now have a complete season_record! Let's write it.
     $season_out.puts(season_record.to_json)
     #and write in the log that we finished this file.
-    $log_file.puts(File.basename(s_file))
-  }
-  team_record.store("seasons",year_records)
-  #Append the team_record to the file.
-  $team_out.puts(team_record.to_json)
-  #Finally, add the file to the log.
-  $log_file.puts(File.basename(t_file))
-  puts "Finished processing all files associated with #{team_record["team_id"]}."
+    $log_file.puts(File.basename(s_file)) 
 end
 
 
