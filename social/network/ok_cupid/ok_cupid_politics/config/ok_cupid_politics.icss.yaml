@@ -7,6 +7,25 @@ data_assets:
   location: politics_question_data.tsv
   type: politics_question_record
   
+code_assets:
+- name: politics_question_asset
+  location: code/politics_question_endpoint.rb
+
+messages:
+  lookup:
+    response: 
+    doc: 
+    initial_free_qty: 
+    price_per_k_in_cents: 
+    request:
+    - name: 
+      type: 
+    samples:
+    - request:
+      - game_id: 
+         innning: 
+  
+
 targets:
   catalog:
   - name: politics_question_catalog_entry
