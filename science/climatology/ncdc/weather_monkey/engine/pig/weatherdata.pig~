@@ -1,0 +1,77 @@
+weather_data = LOAD '1931_weather_data.tsv' AS (
+       sid:chararray, year:chararray, month:chararray, day:chararray, 
+       precipitation:float, snow_depth:float, tmp_average:float, 
+       tmp_observations:float, tmp_max:float, tmp_min:float, dew_point_average:float, 
+       dew_point_observations:float, sea_level_pressure_average:float, sea_level_pressure_observations:float, 
+       station_pressure_average:float, station_pressure_observations:float, visibility_average:float, 
+       visibility_observations:float, wind_speed_average:float, wind_speed_observations:float, 
+       wind_speed_maximum_sustained:float, wind_speed_maximum_gust:float, fog:chararray, rain:chararray, 
+       snow:chararray, hail:chararray, thunder:chararray, tornado:chararray
+     );
+
+station_data = LOAD '1931_station_data.tsv' AS (year:chararray, month:chararray, gx:chararray, gy:chararray, sid:chararray, lat:int, lng:int);
+
+cogrouped = COGROUP station_data BY (sid, year, month), weather_data BY (sid, year, month) INNER;
+
+flattened= FOREACH cogrouped GENERATE FLATTEN(station_data.(gx, gy)),
+  FLATTEN(
+    weather_data.(
+      year, month, day, sid,
+      precipitation:float, snow_depth:float, tmp_average:float, tmp_observations:float, 
+      tmp_max:float, tmp_min:float, dew_point_average:float, dew_point_observations:float, 
+      sea_level_pressure_average:float, sea_level_pressure_observations:float, 
+      station_pressure_average:float, station_pressure_observations:float, 
+      visibility_average:float, visibility_observations:float, wind_speed_average:float, 
+      wind_speed_observations:float, wind_speed_maximum_sustained:float, wind_speed_maximum_gust:float
+  ));
+
+grouped_by_day = GROUP flattened BY (gx, gy, year, month, day);
+
+
+
+c = FOREACH grouped_by_day GENERATE group,
+    AVG(weather_data.precipitation), AVG(weather_data.snow_depth), AVG(weather_data.tmp_average), 
+    AVG(weather_data.tmp_observations), AVG(weather_data.tmp_max), AVG(weather_data.tmp_min), 
+    AVG(weather_data.dew_point_average), AVG(weather_data.dew_point_observations), 
+    AVG(weather_data.sea_level_pressure_average), AVG(weather_data.sea_level_pressure_observations), 
+    AVG(weather_data.station_pressure_average), AVG(weather_data.station_pressure_observations), 
+    AVG(weather_data.visibility_average), AVG(weather_data.visibility_observations), 
+    AVG(weather_data.wind_speed_average), AVG(weather_data.wind_speed_observations), 
+    AVG(weather_data.wind_speed_maximum_sustained), AVG(weather_data.wind_speed_maximum_gust);
+
+DUMP c;
+
+/*
+w = GROUP d BY (wd.sid, wd.year, wd.month, wd.day, b.gx, b.gy);
+*/
+
+
+
+
+
+/*
+
+w = GROUP wd BY (sid, year, month, day);
+
+obs = FOREACH w GENERATE group, weather_data.(precipitation, snow_depth, tmp_average, tmp_observations, tmp_max, tmp_min, dew_point_average, dew_point_observations, sea_level_pressure_average, sea_level_pressure_observations, station_pressure_average, station_pressure_observations, visibility_average, visibility_observations, wind_speed_average, wind_speed_observations, wind_speed_maximum_sustained, wind_speed_maximum_gust, fog, rain, snow, hail, thunder, tornado);
+
+DUMP observations;
+
+
+c = GROUP b BY (sid, year, month);
+sta = FOREACH c GENERATE group, b.(gx, gy);
+*/
+
+
+/*
+
+b= FOREACH a GENERATE sid, year, month, gx, gy, lat, lon;
+c = GROUP b BY (sid, year, month);
+
+b = GROUP a BY (year, month, gx, gy);
+c = FOREACH b {
+  GENERATE FLATTEN(a);
+}
+DUMP c;
+*/
+

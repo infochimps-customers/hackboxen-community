@@ -1,0 +1,74 @@
+---
+namespace: science.climatology.ncdc
+protocol: weather
+
+data_assets: 
+- name: weather_observations
+  location: data/weather_observations
+  type: weather_fourple
+  
+targets:
+  hbase: 
+  - column_families: 
+    - event
+    data_assets: 
+    - weather_observations
+    table_name: science.climatology.ncdc.weather
+    loader: fourple_loader
+    
+types:
+- name: weather_fourple
+  fields:
+  - name: row_key
+    doc: Quad key id corresponding that corresponds to the zoom level.
+    type: string
+  - name: column_family
+    doc: Used as the column family for insertion into the database. Label for a grouping of related columns.
+    type: string
+  - name: date
+    doc: The date of the observation, YYYYMMDD.
+    type: string
+  - name: column_value
+    type: string
+  type: record
+- name: weather_observation
+  doc: A weather observation from Weather Observation Station(s).
+  type: record
+  fields:
+  - name: conditions
+    doc: An array of conditions reported for the day (one or more of fog, rain, snow, hail, thunder, tornado)
+    type:
+      type: array
+      items: string
+  - name: precipitation
+    doc: The precipitation level for the observation day.
+    type: float
+  - name: snow_depth
+    doc: The snow depth level for the observation day.
+    type: float
+  - name: temperature
+    doc: The temperature observation for the day(average, num_observations, max, min).
+    type: icss.core.aggregate_quantity
+  - name: dew_point
+    doc: The dew point level for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: sea_level_pressure
+    doc: The sea level pressure average for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: station_pressure
+    doc: The station pressure level for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: visibility
+    doc: The level of visibility for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: wind_speed
+    doc: The wind_speed for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: wind_speed_maximum_sustained
+    doc: The maximum sustained wind speed measured on the observation day.
+    type: float
+  - name: wind_speed_maximum_gust
+    doc: The maximum gust wind speed measured on the observation day.
+    type: float  
+    
+

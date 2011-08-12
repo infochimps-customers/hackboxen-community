@@ -1,0 +1,68 @@
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'hackboxen'
+require 'imw/recordizer/string_slice_recordizer'
+require File.join(path_to(:hb_engine), 'raw_weather_models')
+
+slicer = IMW::Recordizer::StringSliceRecordizer.new(
+  {
+    :station_number      => (0..5),
+    :wban_number         => (7..11),
+    :year_month          => (14..19),
+    :day                 => (20..21),
+    :temperature         => {
+      :average           => (24..29),
+      :observations      => (31..32),
+      :maximum           => (102..107),
+      :minimum           => (110..115)
+    },
+    :dew_point           => {
+      :average           => (35..40),
+      :observations      => (42..43)
+    },
+    :sea_level_pressure  => {
+      :average           => (46..51),
+      :observations      => (53..54)
+    },
+    :station_pressure    => {
+      :average           => (57..62),
+      :observations      => (64..65)
+    },
+    :visibility          => {
+      :average           => (68..72),
+      :observations      => (74..75)
+    },
+    :wind_speed          => {
+      :average           => (78..82),
+      :observations      => (84..85),
+      :maximum_sustained => (88..92),
+      :maximum_gust      => (95..99)
+    },
+    :precipitation       => (118..122),
+    :snow_depth          => (125..129),
+    :conditions          => {
+      :fog               => (132..132),
+      :rain              => (133..133),
+      :snow              => (134..134),
+      :hail              => (135..135),
+      :thunder           => (136..136),
+      :tornado           => (137..137)
+    }
+  }
+  )
+
+Dir[File.join(path_to(:ripd_dir), '*')].each do |year_dir|
+  output = File.join(path_to(:data_dir), "#{File.basename(year_dir)}_weather_data.tsv")
+  next if File.exists?(output) or Dir[File.join(year_dir, '*.op')].empty?
+  puts "Writing to #{output}"
+  File.open(output, 'w') do |f|
+    Dir[File.join(year_dir, '*.op')].each do |data_file|
+      File.open(data_file).each_line do |line|
+        next if line =~ /STN---/            # skip the header line
+        record = slicer.recordize(line)
+        data   = WeatherRecord.receive(record)
+        f.puts data.to_array.join("\t")
+      end
+    end
+  end
+end

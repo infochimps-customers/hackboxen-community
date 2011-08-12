@@ -1,0 +1,30 @@
+require 'rubygems'
+require 'hackboxen'
+
+task :get_documentation do
+  doc_dir = File.join(path_to(:ripd_dir), 'doc')
+  Dir.mkdir doc_dir unless File.exists? doc_dir
+  WorkingConfig[:documentation].each do |doc|
+    source   = File.join(WorkingConfig[:documentation_url], doc)
+    dest     = File.join(doc_dir, doc)
+    wget_cmd = "wget -O #{dest} #{source}"
+    sh wget_cmd unless File.exists? dest
+  end
+end
+
+task :get_data => [:get_documentation] do
+  range = (WorkingConfig[:download_year_start]..WorkingConfig[:download_year_end])
+  range.each do |year|
+    tar_file = File.join(path_to(:ripd_dir), "gsod_#{year}.tar")
+    source   = File.join(WorkingConfig[:ftp_url], year, File.basename(tar_file))
+    wget_cmd = "wget -O #{tar_file} #{source}"
+    sh wget_cmd unless File.exists? tar_file
+    year_dir = File.join(path_to(:ripd_dir), year)
+    Dir.mkdir(year_dir) unless File.exists? year_dir
+    tar_cmd  = "tar -xvf #{tar_file} -C #{year_dir}"
+    sh tar_cmd if Dir[File.join(year_dir, '*.op*')].empty?
+    Dir[File.join(year_dir, '*.gz')].each { |f| sh "gunzip #{f}" }
+  end
+end
+
+task :default => ['hb:create_working_config', 'hb:icss', :get_data, 'hb:init']

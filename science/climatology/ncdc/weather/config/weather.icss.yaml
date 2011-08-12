@@ -1,0 +1,93 @@
+---
+namespace: historical_weather.ncdc
+protocol: weather_observation
+
+data_assets: 
+- name: weather_observations
+  location: data/weather_observations
+  type: weather_fourple
+  
+targets:
+  hbase: 
+  - column_families: 
+    - event
+    data_assets: 
+    - weather_observations
+    table_name: ncdc_weather_observations
+    loader: fourple_loader
+  catalog:
+  - name: weather_observation_entry
+    title: Historical Weather API
+    description: -|
+Valuable historical weather information at your command! Explore the vast amount of weather data made available to you through our Historical Weather API. The data source is the National Climate Data Center (NCDC), the world's largest active archive of weather data. 
+
+Provide the geographical coordinates for any place in the world and a date, and receive a comprehensive list of weather data for that geographical area. We provide you with data that dates back as far as 1931. 
+
+Test the functionality of the API now using the “Sample Request” below. 
+    tags:
+    - weather
+    - history
+    - geoweather
+    - global_weather
+    - measurements
+    - us_weather
+    - temperature
+    - rain 
+    - snow
+    - tornado
+types:
+- name: weather_fourple
+  fields:
+  - name: quad_key
+    doc: Quad key id corresponding that corresponds to the zoom level.
+    type: string
+  - name: column_family
+    doc: Used as the column family for insertion into the database. Label for a grouping of related columns.
+    type: string
+  - name: date
+    doc: The date of the observation, YYYYMMDD.
+    type: date
+  - name: column_value
+    type: weather_observation
+  type: record
+- name: weather_observation
+  doc: A weather observation from Weather Observation Station(s).
+  type: record
+  fields:
+  - name: conditions
+    doc: An array of conditions reported for the day (one or more of fog, rain, snow, hail, thunder, tornado)
+    type:
+      type: array
+      items: string
+  - name: precipitation
+    doc: The precipitation level for the observation day.
+    type: float
+  - name: snow_depth
+    doc: The snow depth level for the observation day.
+    type: float
+  - name: temperature
+    doc: The temperature observation for the day(average, num_observations, max, min).
+    type: icss.core.aggregate_quantity
+  - name: dew_point
+    doc: The dew point level for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: sea_level_pressure
+    doc: The sea level pressure average for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: station_pressure
+    doc: The station pressure level for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: visibility
+    doc: The level of visibility for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: wind_speed
+    doc: The wind_speed for the observation day(average, num_observations).
+    type: icss.core.aggregate_quantity
+  - name: wind_speed_maximum_sustained
+    doc: The maximum sustained wind speed measured on the observation day.
+    type: float
+  - name: wind_speed_maximum_gust
+    doc: The maximum gust wind speed measured on the observation day.
+    type: float  
+    
+

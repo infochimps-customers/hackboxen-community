@@ -1,0 +1,27 @@
+---
+namespace: science.climatology.ncdc
+protocol: weather
+filesystem_scheme: file
+under_consideration: true
+ftp_url: ftp://ftp.ncdc.noaa.gov/pub/data/gsod
+download_year_start: "1929"
+download_year_end: "2011"
+documentation_url: ftp://ftp.ncdc.noaa.gov/pub/data/inventories
+documentation:
+- readme.txt
+- COOP.TXT
+- COOP-STATE-CODES.TXT
+- ISH-HISTORY.TXT
+- COUNTRY-LIST.TXT
+- ISH-HISTORY.CSV
+- ISH-INVENTORY.TXT
+- ISH-INVENTORY.CSV
+- WBAN.TXT
+- WBAN-MSC.TXT
+- WBAN-FMT.TXT
+- MASTER-STN-HIST.TXT
+- ish-qc-stats2.txt
+- ish-problems.txt
+- inswo-stns.txt
+- product-inventory.pdf
+        

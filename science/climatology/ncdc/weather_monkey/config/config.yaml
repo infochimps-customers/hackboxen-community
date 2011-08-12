@@ -1,0 +1,11 @@
+---
+namespace: science.climatology.ncdc
+protocol: weather_monkey
+filesystem_scheme: hdfs
+under_consideration: true
+documentation_url: ftp://ftp.ncdc.noaa.gov/pub/data/inventories
+update_data: true
+split_data: false
+documentation: ISH-HISTORY.CSV
+zoom_level: 7
+reducers: 6

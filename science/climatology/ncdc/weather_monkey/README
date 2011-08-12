@@ -1,0 +1,21 @@
+Created by Will Hohyon Ryu on 20/Jul/2011
+
+Weather monkey downloads NCDC(National Climatic Data Center) weather station data and join them with the output of weather(science.climatology.ncdc.weather, created by Travis) hackbox.
+
+Dependencies: "python-shapely" and "python-matplotlib" you may "sudo apt-get install" them on Ubuntu 
+
+
+You may change 2 options in config/config.yaml.
+
+- update_data decides whether to process the downloaded weather station history data into the form that is suitable for joining with the weather data. It also assigns grid cells to each weather station and decompose the station history data by year and month.
+
+update_data: true
+
+
+- split_data decides whether to split the joined data for faster access or some other reasons. It divides the big output file by the year and month.
+
+split_data: false
+
+
+
+Run this hackbox by: jruby -S rake

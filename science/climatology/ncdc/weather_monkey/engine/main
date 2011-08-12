@@ -1,0 +1,140 @@
+#!/usr/bin/env jruby
+require 'rubygems'
+require 'hackboxen'
+require 'swineherd'
+require 'swineherd/script' ; include Swineherd::Script
+
+hdfs = Swineherd::FileSystem.get(:hdfs)
+
+reducers=WorkingConfig[:reducers]
+
+doc_dir = File.join(path_to(:ripd_dir), 'doc')
+data_dir = File.join(path_to(:rawd_dir), 'data')
+output_dir = File.join(path_to(:fixd_dir), 'data')
+
+preprocess_dir = File.join(data_dir, 'pre')
+station_dir = File.join(data_dir, 'station_data')
+weather_dir = File.join(data_dir, 'weather_data')
+output_full_dir = File.join(data_dir, 'output_full')
+output_json_dir = File.join(output_dir, 'weather_json')
+
+output_year_dir = File.join(data_dir, 'output_year')
+output_month_dir = File.join(output_dir, 'output_month')
+
+doc=WorkingConfig[:documentation]
+
+#To split the year data by month, get the list of the years
+def get_years(output_dir, hdfs)
+  yearlist=hdfs.lr output_dir
+
+  years=Hash.new
+  yearlist.each do |year|
+    yr=/([0-9]*)\/[0-9]*-[0-9]*/.match(year)
+    if yr != nil then
+      years[yr[1]]=1
+    end
+  end
+  return years.keys
+end
+
+#This preprocessing part runs only when update_data is true or the raw output does not exist
+if WorkingConfig[:update_data] or not hdfs.exists?(output_json_dir) then
+
+  #Process Station Data
+  hdfs_src= File.join(doc_dir, doc)
+  puts "Preprocessing #{hdfs_src} into #{preprocess_dir}"
+
+  hdfs.rm preprocess_dir if hdfs.exists? preprocess_dir
+  sh "hadoop jar engine/hadoop/hadoop-streaming-0.20.2-cdh3u0.jar -file engine/hadoop/mapper.py -mapper \"engine/hadoop/mapper.py #{WorkingConfig[:zoom_level]}\" -file engine/hadoop/reducer.py -reducer engine/hadoop/reducer.py -input #{hdfs_src} -output #{preprocess_dir} -numReduceTasks #{reducers}"
+
+
+  puts "Preprocessing #{preprocess_dir} into #{station_dir}"
+
+  hdfs.rm station_dir if hdfs.exists? station_dir
+  sh "hadoop jar engine/hadoop/hadoop-streaming-0.20.2-cdh3u0.jar -file engine/hadoop/mapper2.py -mapper engine/hadoop/mapper2.py -file engine/hadoop/reducer2.py -file engine/hadoop/voronoi_plot.py -file engine/hadoop/voronoi.py -file engine/hadoop/globalmaptiles.py -file engine/hadoop/voronoi_gen.py -reducer \"engine/hadoop/reducer2.py #{WorkingConfig[:zoom_level]}\" -input #{preprocess_dir} -output #{station_dir}  -numReduceTasks #{reducers}"
+
+
+
+  #Join Station Data with weather observation
+  hdfs.rm output_full_dir if hdfs.exists? output_full_dir
+
+  weatherscript = PigScript.new('engine/pig/weatherdata.pig')
+  #weatherscript.env['PIG_OPTS'] = '-Dmapred.min.split.size=5000000000 -Dmapred.map.max.attempts=100 -Dmapred.reduce.max.attempts=100 -Dmapred.max.tracker.failures=100'
+  weatherscript.options = {
+    :STATIONS => station_dir,
+    :WEATHER  => weather_dir,
+    :OUTPUT   => output_full_dir
+  }
+  weatherscript.run(:hadoop)
+
+=begin
+  hdfs.rm output_json_dir if hdfs.exists? output_json_dir
+  sh "hadoop jar engine/hadoop/hadoop-streaming-0.20.2-cdh3u0.jar -file engine/jsonize/mapper.py -mapper \"engine/jsonize/mapper.py #{WorkingConfig[:zoom_level]}\" -input #{output_full_dir} -output #{output_json_dir}  -numReduceTasks #{WorkingConfig[:zoom_level]*WorkingConfig[:zoom_level]}"
+=end
+
+end
+
+
+
+
+
+
+#If you want to split the output data by year and month (for faster access or other reasons), set "split_data: true" in config/config.yaml
+if WorkingConfig[:split_data] then
+
+  #Split the output by year
+  puts "Splitting the data by year.-----------------------------"
+  hdfs.rm output_year_dir if hdfs.exists? output_year_dir
+
+  weatherscript = PigScript.new('engine/pig/splitdata.pig')
+  weatherscript.options = {
+    :OUTPUT          => output_full_dir,
+    :SPLITTED_OUTPUT => output_year_dir,
+    :SPLIT_BY        => "2"
+  }
+  weatherscript.run(:hadoop)
+
+
+  #Split the output by month
+  years=get_years(output_year_dir, hdfs)
+
+  hdfs.rm output_month_dir if hdfs.exists? output_month_dir
+  #hdfs.mkpath output_month_dir
+
+  years.each do |year|
+    puts "Splitting the data of the year #{year} into months.---------------"
+
+    successflag=0
+    errorCount=0
+    
+    while successflag==0 and errorCount<5
+
+      weatherscript = PigScript.new('engine/pig/splitdata.pig')
+      weatherscript.options = {
+        :OUTPUT          => output_year_dir+"/"+year,
+        :SPLITTED_OUTPUT => output_month_dir+"/"+year,
+        :SPLIT_BY        => "3"
+      }
+      
+      begin
+        weatherscript.run(:hadoop)
+        successflag=1
+        puts "Success! Year #{year} ----------------------------"
+      rescue Exception=>e
+        puts "!!!!!!!!! Error in splitting the data of the year #{year} !!!!!!!!!!!!"
+        puts "Failed #{errorCount} times"
+        puts "Trying again..."
+        errorCount+=1
+        puts e
+        # handle e
+      end
+
+    end
+
+    if successflag==0 then
+      weatherscript.run(:hadoop)
+    end
+    
+  end
+
+end

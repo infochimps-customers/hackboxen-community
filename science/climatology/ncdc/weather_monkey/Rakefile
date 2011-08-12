@@ -1,0 +1,35 @@
+#!/usr/bin/env jruby
+INCLUDING_FILE=File.expand_path(__FILE__)
+require 'rubygems'
+require 'hackboxen'
+require 'swineherd'
+
+task :get_documentation do
+  doc_dir = File.join(path_to(:ripd_dir), 'doc')
+  temp_dir = "temp_data"
+  
+  #WorkingConfig[:documentation].each do |doc|
+  doc=WorkingConfig[:documentation]
+  source   = File.join(WorkingConfig[:documentation_url], doc)
+  dest     = File.join(temp_dir, doc)
+  hdfs_dest= File.join(doc_dir, doc)
+  
+  #Get the data to local (current directory)
+  wget_cmd = "wget -O #{dest} #{source}"
+  sh "mkdir #{temp_dir}" unless File.exists? temp_dir
+  sh wget_cmd unless File.exists? dest
+
+  #Put it onto hdfs
+  hdfs=Swineherd::FileSystem.get :hdfs
+  hdfs.rm hdfs_dest if hdfs.exists? hdfs_dest
+  hdfs.copy_from_local dest, hdfs_dest unless hdfs.exists? hdfs_dest
+  #sh "hadoop fs -put #{dest} #{hdfs_dest}"
+    
+  #Delete the local file
+  sh "rm -rf #{temp_dir}"
+  
+  
+end
+
+task :default => ['hb:create_working_config', :get_documentation, 'hb:init']
+
