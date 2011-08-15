@@ -40,6 +40,7 @@ end
 #This preprocessing part runs only when update_data is true or the raw output does not exist
 if WorkingConfig[:update_data] or not hdfs.exists?(output_json_dir) then
 
+
   #Process Station Data
   hdfs_src= File.join(doc_dir, doc)
   puts "Preprocessing #{hdfs_src} into #{preprocess_dir}"
@@ -67,10 +68,10 @@ if WorkingConfig[:update_data] or not hdfs.exists?(output_json_dir) then
   }
   weatherscript.run(:hadoop)
 
-=begin
+
   hdfs.rm output_json_dir if hdfs.exists? output_json_dir
   sh "hadoop jar engine/hadoop/hadoop-streaming-0.20.2-cdh3u0.jar -file engine/jsonize/mapper.py -mapper \"engine/jsonize/mapper.py #{WorkingConfig[:zoom_level]}\" -input #{output_full_dir} -output #{output_json_dir}  -numReduceTasks #{WorkingConfig[:zoom_level]*WorkingConfig[:zoom_level]}"
-=end
+
 
 end
 
