@@ -2,12 +2,9 @@ require 'rubygems'
 require 'hackboxen'
 require 'nokogiri'
 require 'open-uri'
-require 'configliere'
-
-HACKBOX_DIR = File.dirname(__FILE__)
 
 task :move_template do
-  sh "cp config/icss.json #{HackBoxen::Paths.rawd_dir}" unless File.exist?(File.join(HackBoxen::Paths.rawd_dir,"icss.json"))
+  sh "cp config/icss.json #{path_to(:rawd_dir)}" unless File.exist?(File.join(path_to(:rawd_dir), "icss.json"))
 end
 
 task :get_data do
@@ -16,7 +13,7 @@ task :get_data do
   #individual dataset pages have the description and dataset size.
   begin
     puts "Pulling the catalog page."
-    listing = Nokogiri::HTML(open(WorkingConfig['catalog_url']))
+    listing = Nokogiri::HTML(open(WorkingConfig[:catalog_url]))
     listing.xpath("//h3").each {|d| get_dataset_page d.children.attribute('href').to_s}
   rescue
     puts("Error connecting, processing local files.")
@@ -24,7 +21,7 @@ task :get_data do
 end
 
 def get_dataset_page url
-  path = File.join(HackBoxen::Paths.ripd_dir,File.basename(url))
+  path = File.join(path_to(:ripd_dir), File.basename(url))
   return if File.exist?(path)
   sh "wget -O #{path} #{url}" unless File.size?(path)
   #File.new(path,'w').write(open(url).read)
